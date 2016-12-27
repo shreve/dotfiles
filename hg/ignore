@@ -1,0 +1,12 @@
+syntax: glob
+
+.sass-cache
+.DS_Store
+.git
+.hg
+*.orig
+vendor/bundle
+tmp
+tags
+notes.txt
+documents/*

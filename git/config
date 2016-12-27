@@ -1,0 +1,42 @@
+[alias]
+  aa = add --all
+  b = branch
+  c = commit
+  ck = checkout
+  ctags = "!.git/hooks/ctags"
+  st = status -sb
+  lg = log --pretty=format:'%C(yellow)%h%Creset  %>(12)%C(green)%ar%Creset  %>(12)%C(cyan)%cr%Creset  %<(18)%C(bold blue)%aN%Creset %C(red)%d%Creset %s'
+  last = "log -p -1"
+  # prune-gone = "! git branch -vv | grep gone | sed -E 's/^\s+//' | cut -d ' ' -f1 | xargs git branch -D"
+  rm-cached = "! git st | grep ' D' | cut -c 4- | xargs git rm --cached"
+  rm-new = "! git st | grep '??' | cut -c 4- | xargs rm"
+  stpop = "! git stash apply stash@{$1}; git stash drop stash@{$1}"
+  rb = rebase --committer-date-is-author-date # -Xtheirs
+[color]
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
+  ui = true
+[commit]
+  template = ~/.gitmessage
+[core]
+  quotepath = false
+  editor = emacs
+  excludesfile = ~/.gitignore
+  mergetool = emacs
+[help]
+#  autocorrect = 1 # This actually sucks
+[init]
+  templatedir = ~/.gittemplate
+[merge]
+  tool = emacs
+[push]
+  default = upstream
+[user]
+  name = Jacob Evan Shreve
+  email = jacobevanshreve@me.com
+[url "git@heroku.com:"]
+  insteadOf = heroku:     # $ git remote add heroku:my-app.git
+[url "git@github.com:"]
+  insteadOf = github:     # $ git remote add github:my-repo.git

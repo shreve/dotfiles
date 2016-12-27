@@ -1,0 +1,19 @@
+set PATH ./bin /home/jacob/code/bin /home/jacob/.rbenv/shims /home/jacob/.rbenv/bin $PATH
+set CDPATH ./ ~/
+rbenv rehash >/dev/null ^&1
+
+function emacs-bg
+         /usr/bin/emacs $argv &
+end
+
+alias e emacs-bg
+
+function fishrc
+	emacs ~/.config/fish/config.fish
+	source ~/.config/fish/config.fish
+end
+
+
+alias bx "bundle exec"
+alias bi "bundle install"
+alias bu "bundle update"

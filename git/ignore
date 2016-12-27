@@ -1,0 +1,24 @@
+# Files
+.DS_Store
+tags
+.notes
+.envrc
+.vimrc
+.powenv
+.projectile
+jake.rake
+
+# Mercurial
+.hg
+.hgignore
+
+# Filetypes
+*.swp
+*.orig
+
+# Directories
+private
+.bundle
+vendor/bundle
+bin/
+authenticated_assets/

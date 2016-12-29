@@ -1,102 +1,79 @@
-puts "Ruby #{RUBY_VERSION}"
-puts "`loadext` for some gems"
+# coding: utf-8
+puts " 💎  Ruby #{RUBY_VERSION}"
 
 # IRB extensions
 require 'irb/completion'
-
-ARGV.concat [ "--readline", "--prompt-mode", "simple" ]
+require 'ap'
+require 'benchmark'
+require 'fileutils'
 
 if defined?(Rails)
-  path = File.expand_path("./log/railsc.log")
+  path = Rails.root.join('log/railsc.log').to_s
   prompt = "[\e[1;31mrails/#{Rails.env}\e[0m]$ "
 else
-  path= File.expand_path("~/dotfiles/history/irb")
+  path = File.expand_path('~/.irb_history')
   prompt = "[\e[1;31mirb/local\e[0m]$ "
 end
+
+FileUtils.touch(path) unless File.exist?(path)
 
 IRB.conf[:SAVE_HISTORY] = 1000
 IRB.conf[:HISTORY_FILE] = path
 IRB.conf[:AUTO_INDENT] = true
 IRB.conf[:IGNORE_SIGINT] = true
 IRB.conf[:PROMPT][:CUSTOM] = {
-  :PROMPT_N => prompt,
-  :PROMPT_I => prompt,
-  :PROMPT_S => nil,
-  :PROMPT_C => prompt,
-  :RETURN => "=> %s\n",
-  :AUTO_INDENT => true
+  PROMPT_N: prompt,
+  PROMPT_I: prompt,
+  PROMPT_S: nil,
+  PROMPT_C: prompt,
+  RETURN: "=> %s\n",
+  AUTO_INDENT: true
 }
 IRB.conf[:PROMPT_MODE] = :CUSTOM
-AwesomePrint.irb! rescue
 
-def loadext
-  reqs = %w[
-    rubygems
-    ostruct
-    ap
-  ]
-
-  loaded_reqs = []
-  errored_reqs = []
-
-  reqs.each do |req|
-    begin
-      require req
-      loaded_reqs.push req
-    rescue LoadError
-      errored_reqs.push req
-    end
-  end
-
-  AwesomePrint.irb! rescue
-
-  message = "Loaded: #{loaded_reqs.join(', ')}"
-  message << "   |   Problem loading: #{errored_reqs.join(', ')}" if errored_reqs.size > 0
-  message
-end
+AwesomePrint.irb!
 
 # copy a string to the clipboard
 def copy(string)
-  IO.popen('pbcopy', 'w') { |f| f << string.to_s }
+  IO.popen('xclip', 'w') { |f| f << string.to_s.strip }
   string
 end
 
 def paste
-  `pbpaste`
+  `xclip -o`.strip
 end
 
 def clear
   system('clear')
 end
 
+def ls
+  system('ls')
+end
+
 def git(*args)
   puts `git #{args.join(' ')}`
 end
 
-def st; "st"; end
+def st
+  'st'
+end
 
 # d'oh
-alias :exti :exit
-alias :ext :exit
+alias exti exit
+alias ext exit
 
+# Easily print methods local to an object's class
 class Object
-  # Easily print methods local to an object's class
   def local_methods
     (methods - Object.instance_methods).sort
   end
-
-  def inspect
-    begin
-      ap self
-    rescue
-      super
-    end
-  end
 end
 
+# Pipe any string to a command line program
 class String
-  def |(cmd)
-    IO.popen(cmd.to_s, 'r+') do |pipe|
+  def |(other)
+    IO.popen(other.to_s, 'r+') do |pipe|
       pipe.write(self)
       pipe.close_write
       pipe.read
@@ -104,9 +81,10 @@ class String
   end
 end
 
+# Include some nice rails array methods
 class Array
   def average
-    sum / count
+    sum / count.to_f
   end
 
   def sum
@@ -114,48 +92,40 @@ class Array
   end
 end
 
-def rec_req(*names)
+def recursive_require(*names)
   names.each do |name|
-    unless is_a_dumb_file?(name)
-      pwd = File.absolute_path('.')
-      dir = File.join(pwd, name)
-      if File.directory?(dir)
-        Dir.entries(dir).each do |file|
-          file = File.join(name, file)
-          rec_req(file)
-        end
-      elsif File.file?(dir)
-        require dir
-      end
+    next if a_dumb_file?(name)
+    pwd = File.absolute_path('.')
+    dir = File.join(pwd, name)
+    Dir.entries(dir).each do |file|
+      file = File.join(name, file)
+      rec_req(file)
     end
+    File.file?(dir) and require dir
   end
 end
-alias :rr :rec_req
+alias rr recursive_require
 
-def is_a_dumb_file? name
+def a_dumb_file?(name)
   name = File.basename(name)
   %w(.DS_Store . ..).include?(name)
 end
 
-class NilOut
-  def write(*)
-  end
-end
-
-def bench(iterations = 10, &block)
-  return "You w0t m8?" unless block_given?
+def bench(test = nil, iterations = 10, &block)
+  return 'You w0t m8?' if (!block_given? and test.nil?)
   times = []
   iterations.times do
-    times.push(1000 * Benchmark.realtime { yield })
+    times.push(1_000_000 * Benchmark.realtime do
+      block_given? ? yield : test.call
+    end)
   end
-  puts <<-EOF
-    Max: #{times.max}ms
-    Min: #{times.min}ms
-    Sum: #{times.sum}ms for #{iterations} iterations
-  EOF
+  puts "Max: #{times.max}μs\n" \
+       "Min: #{times.min}μs\n" \
+       "Avg: #{times.average}μs for #{iterations} iterations"
   times.average
 end
 
-if File.exists?(path = File.join(Dir.pwd, '.irbrc'))
+# Allow directory-specific irb config
+if File.exist?(path = File.join(Dir.pwd, '.irbrc'))
   load path
 end

@@ -15,6 +15,7 @@
 (defvar linum-format)
 (setq linum-format "%4d \u2502 ")
 (setq-default indent-tabs-mode nil)
+(setq-default tab-width 2)
 (setq inhibit-splash-screen t)
 (menu-bar-mode -1) ;; minimal chrome
 (tool-bar-mode -1)

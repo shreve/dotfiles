@@ -27,6 +27,6 @@ link git/template ~/.gittemplate
 link hg/ignore ~/.hgignore
 link hg/rc ~/.hgrc
 
-link irbrc ~/.irbrc
+link irbrc.rb ~/.irbrc
 
 link psqlrc ~/.psqlrc

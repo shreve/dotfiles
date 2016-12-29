@@ -15,7 +15,7 @@ link() {
 link emacs ~/.emacs
 link emacs.d ~/.emacs.d
 
-link fishrc ~/.config/fish/config.fish
+link config.fish ~/.config/fish/config.fish
 
 link gemrc ~/.gemrc
 

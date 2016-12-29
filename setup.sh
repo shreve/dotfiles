@@ -29,4 +29,4 @@ link hg/rc ~/.hgrc
 
 link irbrc.rb ~/.irbrc
 
-link psqlrc ~/.psqlrc
+link psqlrc.sql ~/.psqlrc

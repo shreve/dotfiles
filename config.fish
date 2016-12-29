@@ -92,6 +92,8 @@ function pgr
   psql (heroku config:get DATABASE_URL $app)
 end
 
+alias portsnipe "netstat -tulpn | grep $argv | sed -e 's/^.*LISTEN\s\+\([^\/]\+\).*/\1/'"
+
 function rusty
   rustc $argv.rs
   ./$argv

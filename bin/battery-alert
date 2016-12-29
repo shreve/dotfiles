@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+export DISPLAY=:1
+
+remaining_time=$(acpi | grep Discharging | cut -f 5 -d ' ');
+
+if [[ -n "$remaining_time" && $remaining_time < "00:30:00" ]]; then
+    pct=$(acpi | cut -f 4 -d ' ' | sed -e 's/,//');
+    /usr/bin/notify-send --expire-time=180000 --urgency=critical "Low Battery" "($pct) $remaining_time remaining"
+fi

@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+INTERNAL_INPUT="eDP1"
+
+function status_of() {
+    xrandr | grep "$1" | cut -d' ' -f2
+}
+
+case "$1" in
+    toggle)
+        display=$2
+        case "$3" in
+            clone)
+                mode="--same-as"
+                ;;
+
+            above)
+                mode="--above"
+                ;;
+        esac
+
+        if [[ -z "$display" ]]; then
+            echo "Usage: disp toggle [display]"
+        else
+            if [[ "$(status_of $2)" == "connected" ]]; then
+                echo "disconnecting $display"
+                xrandr --output $INTERNAL_INPUT --auto --output $display --off
+            else
+                echo "connecting $display"
+                xrandr --output $INTERNAL_INPUT --auto --output $display --auto $mode $INTERNAL_INPUT
+            fi
+        fi
+        ;;
+
+    on)
+        display=$2
+        case "$3" in
+            clone)
+                mode="--same-as"
+                ;;
+
+            above)
+                mode="--above"
+                ;;
+        esac
+        echo "connecting $display"
+        xrandr --output $INTERNAL_INPUT --auto --output $display --auto $mode $INTERNAL_INPUT
+
+
+        ;;
+
+    status | st)
+        echo "eDP1   $(status_of eDP1)"
+        echo "HDMI2  $(status_of HDMI2)"
+        ;;
+
+    start | stop | restart | cache | log )
+        $@
+        ;;
+
+    *)
+        echo "Usage: disp [command [arguments]]"
+        echo ""
+        echo "  status           view display status"
+        echo "  toggle [disp]    turn a display on or off"
+        echo ""
+        ;;
+
+esac

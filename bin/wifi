@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# if [[ $UID != 0 ]]; then
+#     echo "This command requires sudo. Please enter your password.";
+# fi
+
+interface=$(nmcli d | grep wifi | cut -d' ' -f1)
+config_dir=/etc/NetworkManager/system-connections
+
+list() {
+    sudo iwlist $interface scan | grep ESSID | cut -d'"' -f2 | sort | uniq
+}
+
+new() {
+    echo "$@"
+    nmcli c add \
+          ifname $interface \
+          con-name "$@" \
+          autoconnect no \
+          type wifi ssid "$@"
+}
+
+join() {
+    nmcli c up "$@"
+}
+
+leave() {
+    nmcli c down "$@"
+}
+
+remove() {
+    nmcli c delete "$@"
+}
+
+password() {
+    sudo cat $config_dir/"$(current_network)" | grep psk= | sed -e 's/psk=//'
+}
+
+current_network() {
+    nmcli c show --active | tail -1 | sed -e 's/  .*//g'
+}
+
+case $1 in
+
+    "list")
+        list;
+        ;;
+
+    "new")
+        new "$2";
+        ;;
+
+    "join")
+        join "$2";
+        ;;
+
+    "leave")
+        leave "$3";
+        ;;
+
+    "status"|"st")
+        nmcli c;
+        ;;
+
+    "remove"|"rm")
+        remove "$2";
+        ;;
+
+    "restart")
+        nmcli n off
+        nmcli n on
+        ;;
+
+    "off")
+        nmcli n off
+        ;;
+
+    "on")
+        nmcli n on
+        ;;
+
+    "password"|"pw")
+        echo "SSID: " $(current_network)
+        echo "PASS: " $(password)
+        ;;
+
+    *)
+        echo "Usage: wifi command [arguments]"
+        echo "  on                  turn networking on"
+        echo "  off                 turn networking off"
+        echo "  restart             turn networking off then on again"
+        echo "  list                list available SSIDs"
+        echo "  new ssid            join a new network based on SSID"
+        echo "  join ssid           join an existing network based on SSID"
+        echo "  remove ssid         forget about an existing network connection"
+        echo "  password            (requires sudo) show the current network password"
+        ;;
+esac

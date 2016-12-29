@@ -16,10 +16,10 @@
 #                                  `-.___,-'
 
 set EDITOR emacs
-set PATH ./bin /home/jacob/code/bin /home/jacob/.rbenv/shims /home/jacob/.rbenv/bin $PATH
+set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin $PATH
 set CDPATH ./ ~/ ~/code
 
-rbenv rehash >/dev/null ^&1
+status --is-interactive; source (rbenv init -|psub)
 
 alias bc "bundle clean"
 alias bi "bundle install"

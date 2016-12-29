@@ -20,5 +20,4 @@ jake.rake
 private
 .bundle
 vendor/bundle
-bin/
 authenticated_assets/

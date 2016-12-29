@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+PID_FILE=tmp/pids/server.pid
+LOG_FILE=log/development.log
+
+function start {
+    if [ ! -e $PID_FILE ]
+    then
+        bin/rails s &> log/development.log &
+        spinner "Starting" &
+        spid=$!
+        while [ ! -e $PID_FILE ]
+        do
+            sleep 0.2
+        done
+        kill $spid
+        echo -ne '\r'
+        echo "Rails server started."
+    else
+        echo "Rails server already running."
+    fi
+}
+
+function stop {
+    if [ -e $PID_FILE ]
+    then
+        kill $(cat $PID_FILE) &> /dev/null
+        rm $PID_FILE
+        echo "Rails server stopped."
+    else
+        echo "Rails server not running."
+    fi
+}
+
+function restart {
+    stop;
+    bin/spring stop &> /dev/null
+    start;
+}
+
+function log {
+    tail -f log/${1:-"development"}.log
+}
+
+function cache {
+    echo 'rm -rf tmp/cache/'
+    rm -rf tmp/cache/
+}
+
+function spinner {
+    i=1
+    sp="/—\|"
+    echo -n ' '
+    while true
+    do
+        echo -ne "\r$1: ${sp:i++%${#sp}:1} "
+        sleep 0.1
+    done
+}
+
+case "$1" in
+
+    start | stop | restart | cache | log )
+        $@
+        ;;
+
+    *)
+        echo "Usage: railss [command [arguments]]"
+        echo ""
+        echo "  start           start `rails s` in the background"
+        echo "  stop            stop the running `rails s` process"
+        echo "  restart         stop, kill spring, start"
+        echo "  log [name]      tail the log file (default: development)"
+        echo "  cache           wipe the file cache store"
+        echo ""
+        ;;
+
+esac

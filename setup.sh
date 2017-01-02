@@ -12,7 +12,7 @@ link() {
   ln -s $P/$1 $2
 }
 
-link emacs ~/.emacs
+link emacs.el ~/.emacs
 link emacs.d ~/.emacs.d
 
 link config.fish ~/.config/fish/config.fish

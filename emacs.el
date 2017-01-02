@@ -1,4 +1,4 @@
-;;; package --- Summary
+;; package --- Summary
 ;;; Commentary:
 ;;; Code:
 (require 'package)
@@ -109,9 +109,12 @@ and \\[evil-shift-left]."
   "s" 'save-buffer
   "k" 'kill-buffer
   "e" (lambda ()
-         (interactive)
-         (dired "."))
+        (interactive)
+        (dired "."))
   "y" 'simpleclip-copy
+  "o" (lambda ()
+        (interactive)
+        (find-file "~/notes.org"))
   )
 
 (evil-commentary-mode)
@@ -143,6 +146,11 @@ and \\[evil-shift-left]."
         "l" 'projectile-rails-find-layout
         "m" 'projectile-rails-find-model
         "n" 'projectile-rails-find-mailer
+        "o" (lambda ()
+              (interactive)
+              (find-file
+               (concat
+                (projectile-project-root) "/notes.org")))
         "p" 'projectile-rails-find-spec
         "t" 'projectile-find-file
         "v" 'projectile-rails-find-view

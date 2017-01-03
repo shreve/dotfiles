@@ -1,32 +1,48 @@
 #!/usr/bin/env bash
 
-PID_FILE=tmp/pids/server.pid
 LOG_FILE=log/development.log
+SOCK_PATH=/tmp/$(basename $(pwd)).sock;
 
 function start {
-    if [ ! -e $PID_FILE ]
+    local PID=$(__puma_pid__)
+    if [[ "$PID" -eq "" ]]
     then
-        bin/rails s &> log/development.log &
+        if __no_puma__; then
+            puma -b unix://$SOCK_PATH &> $LOG_FILE &
+        else
+            bundle exec puma -b unix://$SOCK_PATH &> $LOG_FILE &
+        fi
         spinner "Starting" &
         spid=$!
-        while [ ! -e $PID_FILE ]
+        while [ ! -e $SOCK_PATH ]
         do
             sleep 0.2
         done
-        kill $spid
         echo -ne '\r'
-        echo "Rails server started."
+        echo "Rails server started on $(__domain__)"
+        kill $spid &>/dev/null
     else
         echo "Rails server already running."
     fi
 }
 
 function stop {
-    if [ -e $PID_FILE ]
+    local PID=$(__puma_pid__)
+    if [[ "$PID" -ne "" ]] # If there is a PID
     then
-        kill $(cat $PID_FILE) &> /dev/null
-        rm $PID_FILE
+        kill $PID &> /dev/null
+        rm $SOCK_PATH
         echo "Rails server stopped."
+    else
+        echo "Rails server not running."
+    fi
+}
+
+function status {
+    local PID=$(__puma_pid__)
+    if [[ "$PID" -ne "" ]]
+    then
+        echo "Rails server running (pid $PID) $(__domain__)"
     else
         echo "Rails server not running."
     fi
@@ -58,9 +74,21 @@ function spinner {
     done
 }
 
-case "$1" in
+function __domain__ {
+    local sock=$(basename $SOCK_PATH);
+    echo "http://${sock%.*}.dev";
+}
 
-    start | stop | restart | cache | log )
+function __no_puma__ {
+    return $(grep puma Gemfile | wc -l)
+}
+
+function __puma_pid__ {
+    netstat -ap 2>/dev/null | grep $SOCK_PATH | sed -r 's/.* ([0-9]+)\/.*$/\1/'
+}
+
+case "$1" in
+    start | stop | restart | cache | log | status)
         $@
         ;;
 
@@ -74,5 +102,4 @@ case "$1" in
         echo "  cache           wipe the file cache store"
         echo ""
         ;;
-
 esac

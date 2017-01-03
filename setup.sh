@@ -29,6 +29,8 @@ link hg/rc ~/.hgrc
 
 link irbrc.rb ~/.irbrc
 
+link i3.conf ~/.config/i3/config
+
 link nginx-dev.conf /etc/nginx/sites-enabled/dev
 
 link psqlrc.sql ~/.psqlrc

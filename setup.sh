@@ -7,9 +7,9 @@ P=$(pwd -P)
 link() {
   if [ -h $2 ]; then
     echo "$2 exists. Removing."
-    rm $2;
+    sudo rm $2;
   fi
-  ln -s $P/$1 $2
+  sudo ln -s $P/$1 $2
 }
 
 link emacs.el ~/.emacs
@@ -28,5 +28,7 @@ link hg/ignore ~/.hgignore
 link hg/rc ~/.hgrc
 
 link irbrc.rb ~/.irbrc
+
+link nginx-dev.conf /etc/nginx/sites-enabled/dev
 
 link psqlrc.sql ~/.psqlrc

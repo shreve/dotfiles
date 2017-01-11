@@ -43,7 +43,7 @@ bindsym $mod+e exec emacs --chdir `cat ~/.cache/pwd`
 bindsym $mod+m exec rhythmbox
 
 # kill focused window
-bindsym $mod+q kill
+bindsym e kill
 
 # start dmenu (a program launcher)
 # bindsym $mod+d exec dmenu_run
@@ -198,10 +198,10 @@ bar {
 
     colors {
            #                  Backgrd Border  Text Color
-           focused_workspace  #0080ff #0080ff #ffffff
-           active_workspace   #0080ff #0080ff #ffffff
-           inactive_workspace #000000 #000000 #ffffff
-           urgent_workspace   #ff0000 #ff0000 #ffffff
+           focused_workspace  #867530 #555555 #999999
+           active_workspace   #424242 #111111 #ffffff
+           inactive_workspace #222222 #222222 #696969
+           urgent_workspace   #232004 #120432 #223232
     }
 }
 
@@ -209,5 +209,5 @@ new_window pixel 1
 hide_edge_borders both
 
 #                  Border  Backgrd text    indctr    child_border
-client.focused     #0080ff #0080ff #ffffff #2e9ef4   #0080ff
-client.unfocused   #0080ff #31343E #ffffff #2e9ef4   #ffffff
+client.focused     #008988 #eeeeee #rrrrrr #533243   #220403
+client.unfocused   #008900 #eeeeee #rrrrrr #223222   #hhhhhh

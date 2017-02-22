@@ -102,6 +102,9 @@ and \\[evil-shift-left]."
 (define-key evil-normal-state-map "g0" 'evil-first-non-blank)
 (define-key evil-normal-state-map "0" 'evil-first-non-blank)
 
+(define-key evil-normal-state-map "j" 'next-line)
+(define-key evil-normal-state-map "k" 'previous-line)
+
 (require 'evil-leader)
 (global-evil-leader-mode)
 (evil-leader/set-leader ",")
@@ -276,6 +279,11 @@ and \\[evil-shift-left]."
   (dired-hide-details-mode)
   (linum-mode))
 (add-hook 'dired-mode-hook 'shreve-dired-mode)
+
+(defun shreve-latex-mode ()
+  (visual-line-mode)
+  (fci-mode 0))
+(add-hook 'latex-mode-hook 'shreve-latex-mode)
 
 (defun on-after-init()
   (unless (display-graphic-p (selected-frame))

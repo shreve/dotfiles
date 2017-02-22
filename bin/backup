@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+EXIT_CODE=1;
+
+perform_backup() {
+    echo "Starting backup to sync.jacobevanshreve.me" >&2
+    rsync --verbose --recursive --links --perms --times \
+          --delete --compress --ignore-existing --archive \
+          --human-readable \
+          --exclude=.cache* \
+          --exclude=cache* \
+          --exclude=.rbenv* \
+          --exclude=.ssh/ \
+          --exclude=*.DS_Store \
+          ~ sync:/home
+    # sync is configured in ~/.ssh/config
+    EXIT_CODE=$?;
+}
+
+perform_backup;
+
+while [ $EXIT_CODE -gt 0 ]; do
+    echo "Retrying shortly...";
+    sleep 3;
+    perform_backup;
+done

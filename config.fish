@@ -17,11 +17,10 @@
 
 set EDITOR emacs
 set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin $PATH
-set CDPATH ./ ~/ ~/code
+set CDPATH ./ ~/ ~/code ~/Documents/School
 
 status --is-interactive; source (rbenv init -|psub)
 
-alias bc "bundle clean"
 alias bi "bundle install"
 alias bu "bundle update"
 alias bx "bundle exec"
@@ -79,6 +78,11 @@ function keep-doing
   end
 end
 
+# Force kill with a more effective search
+function massacre
+  ps aux | grep -i $argv[1] | awk '{print $2}' | xargs kill -9
+end
+
 function mkd
   mkdir $argv
   cd $argv
@@ -109,6 +113,10 @@ function size
   du -hc $argv | tail -1
 end
 
+function spawn
+  nohup $argv >/dev/null &
+end
+
 # Temporarily change your MAC address, restart to reset
 function spoof-mac
   wifi off
@@ -117,4 +125,34 @@ function spoof-mac
   wifi on
 end
 
+# Enables `sudo !!` to repeat the last command like in bash
+function sudo
+  if test "$argv" = "!!"
+    eval command sudo $history[1]
+  else
+    command sudo $argv
+  end
+end
+
 alias ytmp3 "youtube-dl -x --audio-format mp3"
+
+function __edit_input
+  commandline > /tmp/input
+  emacs /tmp/input
+  commandline (cat /tmp/input)
+end
+
+bind \ce "__edit_input"
+
+# Prefix the previous line with $argv
+function __run_with_prefix
+  commandline -i $argv
+  commandline -i ' '
+  commandline -i $history[1]
+end
+
+function __bind_keys
+  bind \cs "__run_with_prefix sudo"
+  bind \cb "__run_with_prefix bx"
+end
+__bind_keys

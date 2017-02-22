@@ -36,7 +36,7 @@ turn_off() {
 }
 
 usage() {
-   echo "This script controll keyboard backlight on IBM ThinkPad X-series"
+   echo "This script controls keyboard backlight on IBM ThinkPad X-series"
    echo "Usage: keylight command"
    echo "   up, on - increase the brightness"
    echo "   down - decrease the brightness"

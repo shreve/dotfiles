@@ -8,6 +8,7 @@
   lg = log --pretty=columned
   last = "log -p -1"
   # prune-gone = "! git branch -vv | grep gone | sed -E 's/^\s+//' | cut -d ' ' -f1 | xargs git branch -D"
+  p = pull --prune
   rm-cached = "! git st | grep ' D' | cut -c 4- | xargs git rm --cached"
   rm-new = "! git st | grep '??' | cut -c 4- | xargs rm"
   stpop = "! git stash apply stash@{$1}; git stash drop stash@{$1}"

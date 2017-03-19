@@ -186,13 +186,25 @@ case "$1" in
         ;;
 
     info)
-        status-line
         cmus-remote $server -Q
         ;;
 
     "")
         start
         ;;
+
+    --help|-h|help)
+        echo "usage: music [cmd]
+\`music\` without parameters opens a screen session with cmus and attaches
+
+play or pause    toggle pause
+prev             restart song or jump to previous song
+next             jump to next track
+quit or kill     properly quit the cmus player
+status-line      get a one-line summary of cmus
+info             get all the info from cmus about its status"
+        ;;
+
 esac
 
 # Always send the update signal to i3blocks.

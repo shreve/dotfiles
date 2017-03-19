@@ -12,6 +12,7 @@ general {
 }
 
 order += "disk /"
+order += "brightness"
 order += "volume master"
 order += "wireless _first_"
 order += "battery 0"

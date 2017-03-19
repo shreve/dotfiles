@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+source=/sys/class/power_supply/BAT0/
+
+prop () {
+  cat $source/$1
+}
+
+colorize () {
+  echo "<span foreground=\"$1\">$2</span>"
+}
+
+alert () {
+    /usr/bin/notify-send --expire-time=2000 --urgency=critical "Low Battery" "($percent) $remaining remaining"
+}
+
+color () {
+    local percent=$(echo "$pct / 100" | bc -l)
+    if [ "$pct_int" -gt "50" ]; then
+        red=$(echo "255 * (2 - ($percent * 2))" | bc -l)
+        green=255
+    else
+        red=255
+        green=$(echo "255 * $percent * 2" | bc -l)
+    fi
+    echo "#$(/home/jacob/code/dotfiles/bin/num2hex $red $green 0)"
+}
+
+pct=$(bc -l <<< "$(prop energy_now) / $(prop energy_full).0 * 100")
+rate=$(bc -l <<< "$(prop power_now) / 1000000")
+
+pct_int=${pct%.*}
+
+percent=$(printf "%.1f" $pct)%
+remaining=$(acpi | awk '{printf $5}')
+rate=$(printf "%.2f W" $rate)
+
+
+color=$(color)
+if [ "$(prop status)" == "Charging" ]; then
+   icon="⚡⚡"
+   color='#FFFF00'
+elif [ "$pct_int" -gt "90" ]; then
+  icon=""
+elif [ "$pct_int" -gt "50" ]; then
+  icon=""
+elif [ "$pct_int" -gt "35" ]; then
+  icon=""
+elif [ "$pct_int" -gt "10" ]; then
+  icon=""
+else
+  icon=""
+  alert
+fi
+
+echo "$(colorize "$color" "$icon  $percent") [$remaining][$rate]"

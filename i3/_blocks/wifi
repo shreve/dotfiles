@@ -1,0 +1,30 @@
+#!/bin/bash
+
+colorize () {
+    echo "<span foreground=\"$1\">$2</span>"
+}
+
+INTERFACE="${BLOCK_INSTANCE:-wlp4s0}"
+
+if [[ "$(cat /sys/class/net/$INTERFACE/operstate)" = 'down' ]]; then
+    echo "$(colorize '#ff0000' '  WiFi off')"
+    exit
+fi
+
+
+QUALITY=$(grep $INTERFACE /proc/net/wireless | awk '{ print int($3 * 100 / 70) }')
+SSID=$(iwgetid -r)
+ADDR=$(hostname -I)
+
+# color
+if [[ $QUALITY -ge 80 ]]; then
+    color="#00FF00"
+elif [[ $QUALITY -ge 60 ]]; then
+    color="#FFF600"
+elif [[ $QUALITY -ge 40 ]]; then
+    color="#FFAE00"
+else
+    color="#FF0000"
+fi
+
+echo "$(colorize '#00ff00' "  $SSID $ADDR")[$(colorize $color $QUALITY%)]"

@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+
+log=/home/jacob/.config/cmus/log
+socket=/home/jacob/.config/cmus/socket
+server="--server $socket"
+cache=/home/jacob/.cache/cmus-status
+
+cmus-remote $server -Q > $cache
+
+echo $@ >> $log
+
+###############   Commands   ###################
+play() {
+    cmus-remote $server --play
+    alert-current
+}
+
+pause() {
+    cmus-remote $server --pause
+    alert_current
+}
+
+prev() {
+    cmus-remote $server --prev
+    alert_current
+}
+
+next() {
+    cmus-remote $server --next
+    alert_current
+}
+
+start() {
+    if ! screen -r -D cmus >/dev/null ; then
+        screen -S cmus /usr/bin/cmus --listen $socket
+    fi
+}
+
+quit() {
+    screen -X -S cmus quit >/dev/null 2>&1
+}
+
+status-line() {
+    echo "$(icons)  :: $(artist) :: $(song)"
+}
+
+
+################   Data   ####################
+artist () {
+    cat $cache | grep "tag artist" | awk '{$1=$2=""; print $0}' | sed 's/^\s\+//'
+}
+
+song () {
+    cat $cache | grep title | awk '{$1=$2=""; print $0}' | sed 's/^\s\+//'
+}
+
+status () {
+    cat $cache | grep status | awk '{print $2}'
+}
+
+shuffle() {
+    grep "shuffle" $cache | awk '{print $3}'
+}
+
+repeat() {
+    grep "repeat " $cache | awk '{print $3}'
+}
+
+icons () {
+    text=""
+
+    case "$(status)" in
+        playing)
+            text=""
+            ;;
+
+        paused)
+            text=""
+            ;;
+    esac
+
+    case "$(shuffle)" in
+        true)
+            text="$text $(colorize '#fff' '')"
+            ;;
+
+        false)
+            text="$text  $(colorize '#666' '')"
+            ;;
+    esac
+
+    case "$(repeat)" in
+        true)
+            text="$text $(colorize '#fff' '')"
+            ;;
+
+        false)
+            text="$text $(colorize '#666' '')"
+            ;;
+    esac
+
+
+    echo $text
+}
+
+
+################   Aux   #####################
+update_i3blocks () {
+  pkill -RTMIN+12 i3blocks
+}
+
+alert_current() {
+    if pgrep cmus >/dev/null; then
+        notify-send -u low -a cmus "Currently Playing" "$(artist) :: $(song)"
+    fi
+}
+
+colorize() {
+    echo "<span foreground=\"$1\"> $2 </span>"
+}
+
+case "$1" in
+    play|pause)
+        pause
+        ;;
+
+    prev)
+        prev
+        ;;
+
+    next)
+        next
+        ;;
+
+    socket)
+        echo $socket
+        ;;
+
+    start)
+        if [[ $* = *--i3* ]]; then
+            if ! pgrep cmus; then
+                gnome-terminal --command "$0 start"
+            else
+                play
+            fi
+        else
+            start
+        fi
+        ;;
+
+    quit|"kill")
+        quit
+        ;;
+
+    update)
+        ;;
+
+    status-line)
+        status-line
+        exit 0
+        ;;
+
+    *)
+        start
+        ;;
+esac
+
+update_i3blocks

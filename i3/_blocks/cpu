@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+usage=$(cat /proc/stat | grep 'cpu ' | awk '{printf "%.1f%", (($2+$4)*100)/($2+$4+$5)}')
+
+temp=$(cat /sys/class/thermal/thermal_zone0/temp | awk '{printf "%.1f°F", ($1 / 1000) * (9/5) + 32}')
+
+echo "$usage $temp"

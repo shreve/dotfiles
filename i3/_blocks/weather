@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+file=~/.cache/weather
+key=2dc080dab74bf74a1603a2290350af81
+url="https://api.darksky.net/forecast/$key"
+params="?exclude=alerts,flags,daily,hourly,minutely"
+
+cache_valid () {
+    # If the file is found, it's older than 10 minutes, and we should update the cache
+    return $(expr 1 - $(find $file -mmin -10 | wc -l))
+}
+
+all_data () {
+
+    # If the cache is invalid, fetch the data again
+    cache_valid
+    if [ "$?" != "0" ]; then
+        data=$(curl -s -N "$url/$(coords)$params")
+        if [ "$?" = "0" ]; then
+          echo $data | json_pp > $file;
+        fi
+    fi
+    cat $file;
+}
+
+city () {
+    all_data | grep City | sed -E 's/^[^:]+: //' | sed -E 's/,.*$//'
+}
+
+status () {
+    all_data | grep summary | awk -F "\"" '{ print $4 }'
+}
+
+temp () {
+    all_data | grep temperature | awk '{ print $3 }' | sed 's/,//'
+}
+
+apparent_temp () {
+    all_data | grep apparent | awk '{ print $3 }' | sed 's/,//'
+}
+
+location () {
+    dbus-send --type=method_call --print-reply=literal \
+              --dest="org.freedesktop.Geoclue.Providers.UbuntuGeoIP" \
+              /org/freedesktop/Geoclue/Providers/UbuntuGeoIP \
+              org.freedesktop.Geoclue.Position.GetPosition
+}
+
+city () {
+    dbus-send --type=method_call --print-reply=literal \
+              --dest="org.freedesktop.Geoclue.Providers.UbuntuGeoIP" \
+              /org/freedesktop/Geoclue/Providers/UbuntuGeoIP \
+              org.freedesktop.Geoclue.Address.GetAddress | grep locality | awk '{$1=""; print $0}' | sed 's/ )//' | sed 's/^\s\+//'
+}
+
+coords () {
+    location | grep double | head -n 2 | awk '{ print $2 }' | tr '\n' ',' | sed 's/,$//'
+}
+
+case "$1" in
+
+    update)
+        touch --date=2000-01-01 $file
+        ;;
+
+esac
+
+echo "$(city) :: $(status) :: $(temp)/$(apparent_temp)°F"

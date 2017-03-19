@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+status=$(/home/jacob/code/dotfiles/bin/music status-line)
+
+[ "$status" = "" ] && exit 1
+
+echo $status

@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+update_i3blocks () {
+  pkill -RTMIN+10 i3blocks
+}
+
+increase () {
+  pactl set-sink-volume 0 +5%
+}
+
+decrease () {
+  pactl set-sink-volume 0 -5%
+}
+
+toggle_mute () {
+  pactl set-sink-mute 0 toggle
+}
+
+set_volume () {
+    pactl set-sink-volume 0 "${1}%"
+}
+
+get_volume() {
+    amixer -D pulse sget Master | grep '%' | awk -F "[][]" '{print $2}' | head -1 | sed -e 's/%//'
+}
+
+case "$1" in
+
+    +|increase)
+        if [ "$(get_volume)" -lt 150 ]; then
+            increase
+        fi
+        ;;
+
+    -|decrease)
+        decrease
+        ;;
+
+    mute|toggle)
+        toggle_mute
+        ;;
+
+    [0-9]|[0-9][0-9]|1[0-9][0-9])
+        set_volume "$1"
+        ;;
+
+    *)
+        get_volume
+        ;;
+
+esac
+
+update_i3blocks

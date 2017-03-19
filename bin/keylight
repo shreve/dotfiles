@@ -1,64 +1,158 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Vadim Zaliva lord@crocodile.org
-# based on https://gist.github.com/hadess/6847281
+# Based on the script from Giorgos Keramidas (@gkeramidas)
+# https://keramida.wordpress.com/2013/03/28/controlling-the-keyboard-backlight-from-cli/
 
-# if [ sudo -n true 2>/dev/null ]; then
-#     echo "You are sudo"
-# else
-#    echo "This script performs sudo commands." 1>&2
-# fi
+# This file can be symlinked to /etc/pm/sleep.d/keylight so the keyboard will turn on and off
+# based on sleep/hibernate and resume/thaw events
 
-FILEPATH="/sys/devices/platform/thinkpad_acpi/leds/tpacpi::kbd_backlight/brightness"
-CURRENT=$(sudo cat $FILEPATH)
+# This can also be symlinked to /etc/acpi/lid.sh to be used in conjunction with the following:
+# cat /etc/acpi/events/thinkpad-lid
+# > event=button/lid
+# > action=/etc/acpi/lid.sh %e
+# This allows the script to be run based on lid open and close events
 
-set () {
-    new=$1
-    if [ $(expr "$new < 0" | bc) -eq '1' ]; then
-        new='0'
+dest="org.freedesktop.UPower"
+path="/org/freedesktop/UPower/KbdBacklight"
+base="org.freedesktop.UPower.KbdBacklight"
+
+args="--type=method_call --print-reply=literal --system --dest=$dest $path"
+
+light_hour=400
+dark_hour=1800
+
+this=$(dirname $0)/keylight
+
+time_of_day() {
+    date '+%H%M'
+}
+
+backlight_get() {
+    dbus-send $args $base.GetBrightness | awk '{print $2}'
+}
+
+backlight_get_max() {
+    dbus-send $args $base.GetMaxBrightness | awk '{print $2}'
+}
+
+backlight_set() {
+    value="$1"
+    if test -z "${value}" ; then
+        echo "Invalid backlight value ${value}"
+    else
+        dbus-send $args $base.SetBrightness "int32:${value}}"
     fi
-    if [ $(expr "$new > 2" | bc) -eq '1' ]; then
-        new='2'
-    fi
-    echo $new | sudo dd of=$FILEPATH &> /dev/null
 }
 
-increase() {
-    set $(expr "$CURRENT + 1" | bc)
-}
-
-decrease() {
-    set $(expr "$CURRENT - 1" | bc)
-}
-
-turn_off() {
-    set '0'
-}
-
-usage() {
-   echo "This script controls keyboard backlight on IBM ThinkPad X-series"
-   echo "Usage: keylight command"
-   echo "   up, on - increase the brightness"
-   echo "   down - decrease the brightness"
-   echo "   off - decrease to off"
-}
-
-if [ "$#" -ne 1 ];then
-   usage
-   exit 1
-fi
-
-case "$1" in
-        "up"|"on")
-            increase
+backlight_change() {
+    case $1 in
+        [0-9])
+            current=$( backlight_get )
+            max=$( backlight_get_max )
+            value=$( expr ${change} + 0 )
+            if test ${value} -lt 0 || test ${value} -gt ${max} ; then
+                echo "Invalid backlight value ${value}."                  \
+                     "Should be a number between 0 .. ${max}" >&2
+                return 1
+            else
+                backlight_set "${value}"
+                notify-send -t 800 "Keyboard brightness set to ${value}"
+            fi
             ;;
-        "down")
-            decrease
+
+        up)
+            current=$( backlight_get )
+            max=$( backlight_get_max )
+            if test "${current}" -lt "${max}" ; then
+                value=$(( ${current} + 1 ))
+                backlight_set "${value}"
+                notify-send -t 800 "Keyboard brightness set to ${value}"
+            fi
             ;;
-        "off")
-            turn_off
+
+        down)
+            current=$( backlight_get )
+            if test "${current}" -gt 0 ; then
+                value=$(( ${current}  - 1 ))
+                backlight_set "${value}"
+                notify-send -t 800 "Keyboard brightness set to ${value}"
+            fi
             ;;
+
+        on)
+            backlight_set 1
+            ;;
+
+        off|suspend|hibernate|close)
+            backlight_set 0
+            ;;
+
+        resume|thaw|open)
+            if [[ $(time_of_day) -gt $dark_hour ]] || [[ $(time_of_day) -lt $light_hour ]]; then
+                backlight_set 1
+            else
+                backlight_set 0
+            fi
+            ;;
+
         *)
-            usage
-            exit 1
-esac
+            echo "Invalid backlight change ${change}." >&2
+            echo "Should be 'up' or 'down' or a number between"           \
+                 "1 .. $( backlight_get_max )" >&2
+            return 1
+            ;;
+    esac
+}
+
+watch_for_screen_changes() {
+    nohup xscreensaver-command -watch | __watch_loop
+}
+
+__watch_loop() {
+    while read line; do
+        case "$line" in
+            BLANK*)
+                backlight_change "off"
+                ;;
+
+            UNBLANK*)
+                backlight_change "resume"
+                ;;
+        esac
+    done
+}
+
+
+if test $# -eq 0 ; then
+    current_brightness=$( backlight_get )
+    notify-send -t 800 "Keyboard brightness is ${current_brightness}"
+elif [ "$1" == "watch-screen" ]; then
+    watch_for_screen_changes
+else
+    changes=$@
+    if [ "$1" == "button/lid" ]; then
+        changes=$3
+    fi
+
+    if [ "$1" == "pre suspend" ]; then
+        changes="off"
+    fi
+
+    if [ "$1" == "post suspend" ]; then
+        changes="on"
+    fi
+
+    if [[ $1 == BLANK* ]]; then
+        changes="off"
+    fi
+
+    if [[ $1 == UNBLANK* ]]; then
+        changes="resume"
+    fi
+
+    # Handle multiple backlight changes, e.g.:
+    #   backlight.sh up up down down up
+    for change in "$changes" ; do
+        backlight_change "${change}"
+    done
+fi

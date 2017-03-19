@@ -19,6 +19,7 @@
 (setq inhibit-splash-screen t)
 (menu-bar-mode -1) ;; minimal chrome
 (tool-bar-mode -1)
+(toggle-scroll-bar -1)
 (show-paren-mode 1) ;; show matching parens
 (setq tab-stop-list (number-sequence 2 60 2)) ;; generate a list from 2-60 by 2s
 (add-hook 'find-file-hook (lambda () (linum-mode 1)))
@@ -213,6 +214,7 @@ and \\[evil-shift-left]."
  )
 
 ;; Set the font size to 9pt
+(set-face-attribute 'default nil :family "Fira Mono")
 (set-face-attribute 'default nil :height 90)
 
 (set-face-background 'hl-line "grey9")
@@ -258,7 +260,6 @@ and \\[evil-shift-left]."
 (set-face-attribute 'flycheck-fringe-info nil
                     :foreground "dodger blue")
 
-
 (flycheck-define-error-level 'error
   :severity 2
   :overlay-category 'flycheck-error-overlay
@@ -280,10 +281,12 @@ and \\[evil-shift-left]."
   (linum-mode))
 (add-hook 'dired-mode-hook 'shreve-dired-mode)
 
-(defun shreve-latex-mode ()
+(defun shreve-text-mode ()
   (visual-line-mode)
   (fci-mode 0))
-(add-hook 'latex-mode-hook 'shreve-latex-mode)
+(add-hook 'latex-mode-hook 'shreve-text-mode)
+(add-hook 'org-mode-hook 'shreve-text-mode)
+(add-hook 'markdown-mode-hook 'shreve-text-mode)
 
 (defun on-after-init()
   (unless (display-graphic-p (selected-frame))

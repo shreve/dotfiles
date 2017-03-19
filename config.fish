@@ -19,7 +19,9 @@ set EDITOR emacs
 set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin $PATH
 set CDPATH ./ ~/ ~/code ~/Documents/School
 
-status --is-interactive; source (rbenv init -|psub)
+source ~/.config/fish/conf.d/omf.fish
+
+status --is-interactive; and source (rbenv init -|psub)
 
 alias bi "bundle install"
 alias bu "bundle update"
@@ -131,6 +133,25 @@ function sudo
     eval command sudo $history[1]
   else
     command sudo $argv
+  end
+end
+
+# Find and replace in card titles across all boards
+function trello_title_gsub
+  return
+  set -l board_ids (trello board list --output tsv | awk '{print $1}')
+  for id in $board_ids
+    set -l cards (http GET "https://api.trello.com/1/boards/$id/cards?fields=id,name&key=$TRELLO_DEVELOPER_PUBLIC_KEY&token=$TRELLO_MEMBER_TOKEN" --body)
+
+    echo cards | \                          # Get the list of all card ids on this board
+      sed -e 's/},/},\n/g' | \              # Split the JSON onto multiple lines
+      grep $argv[1] | \                     # Look for relevant cards
+      sed -e 's/$argv[1]/$argv[2]/g' | \    # Make the text replacement
+      sed -e 's/\\\"/\\\\\'/g' | \          # Change escaped double quotes to escaped single quotes
+      awk -F '"' '{print $4 ";;;" $8}' | \  # Extract the card id and name text
+      sed -e 's/\\\\\'/\\\"/g' | \          # Revert the quote swap done above
+      awk -F ';;;' '{print "http PUT \"https://api.trello.com/1/cards" $1 "?key=$TRELLO_DEVELOPER_PUBLIC_KEY&token=$TRELLO_MEMBER_TOKEN&name=" $2 "\"" }' | \
+      fish
   end
 end
 

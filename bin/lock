@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+LOG=/tmp/lock.log
+export DISPLAY=:1
+
+echo $DISPLAY >> $LOG
+echo $(whoami) >> $LOG
+i3lock --image=/home/jacob/Pictures/lockscreen.png \
+       --nofork --pointer=default --ignore-empty-password --show-failed-attempts

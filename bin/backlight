@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+step=5
+time=0
+
+update_i3blocks () {
+  pkill -RTMIN+10 i3blocks
+}
+
+increase () {
+    xbacklight -inc $step -time $time
+}
+
+decrease () {
+    xbacklight -dec $step -time $time
+}
+
+set_intensity () {
+    xbacklight -set $1 -time $time
+}
+
+get_intensity () {
+    printf "%.1f" $(xbacklight)
+}
+
+case "$1" in
+
+    +|increase)
+        increase
+        ;;
+
+    -|decrease)
+        decrease
+        ;;
+
+    [0-9]|[0-9][0-9]|100)
+        set_intensity "$1"
+        ;;
+
+    *)
+        get_intensity
+        ;;
+
+esac
+
+update_i3blocks

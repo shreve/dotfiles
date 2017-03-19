@@ -13,6 +13,8 @@ exec ~/.xinitrc
 
 set $mod Mod1
 
+set $bin /home/jacob/code/dotfiles/bin
+
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
 font pango:firamono 6
@@ -39,12 +41,12 @@ bindsym $mod+Shift+space move scratchpad
 bindsym $mod+Return exec gnome-terminal --working-directory="`cat ~/.cache/pwd`" # i3-sensible-terminal
 
 # open a browser window
-bindsym $mod+b exec google-chrome-stable
+bindsym $mod+b exec google-chrome-stable --force-device-scale-factor=1.25
 
 # open an editor
 bindsym $mod+e exec emacs --chdir `cat ~/.cache/pwd`
 
-bindsym $mod+m exec rhythmbox
+bindsym $mod+m exec --no-startup-id $bin/music start --i3
 
 # kill focused window
 bindsym $mod+q kill
@@ -54,7 +56,11 @@ bindsym $mod+q kill
 # There also is the (new) i3-dmenu-desktop which only displays applications
 # shipping a .desktop file. It is a wrapper around dmenu, so you need that
 # installed.
-bindsym $mod+XF86Search exec --no-startup-id i3-dmenu-desktop
+bindsym $mod+XF86Search exec --no-startup-id i3-dmenu-desktop \
+  --dmenu="dmenu -i -fn 'Fira Mono-10' -sb '#0080ff' -sf '#FFF' -nb '#000' -nf '#FFF'"
+
+# Open Gnome system settings
+bindsym $mod+XF86Tools exec unity-control-center --overview
 
 # change focus
 bindsym $mod+h focus left
@@ -164,17 +170,22 @@ mode "resize" {
 bindsym $mod+r mode "resize"
 
 # Pulse Audio controls
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 0 +5% #increase sound volume
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 0 -5% #decrease sound volume
-bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute 0 toggle # mute sound
+bindsym XF86AudioRaiseVolume exec $bin/volume +
+bindsym XF86AudioLowerVolume exec $bin/volume -
+bindsym XF86AudioMute        exec $bin/volume mute
 
 # Screen brightness controls
-bindsym XF86MonBrightnessUp exec xbacklight -inc 10 # increase screen brightness
-bindsym XF86MonBrightnessDown exec xbacklight -dec 10 # decrease screen brightness
-bindsym F6 exec keylight up
-bindsym F5 exec keylight down
+bindsym XF86MonBrightnessUp   exec $bin/backlight + # increase screen brightness
+bindsym XF86MonBrightnessDown exec $bin/backlight - # decrease screen brightness
+bindsym F6 exec $bin/keylight up
+bindsym F5 exec $bin/keylight down
 
 bindsym XF86Display exec /home/jacob/code/bin/display toggle
+
+# Music controls
+bindcode 110 exec $bin/music prev # Home
+bindcode 115 exec $bin/music pause # End
+bindcode 118 exec $bin/music next # Insert
 
 bindsym XF86Explorer exec nautilus --browser "Downloads"
 bindsym $mod+XF86Explorer exec nautilus --browser "`cat ~/.cache/pwd`"
@@ -186,20 +197,18 @@ set $screenie_path '/home/jacob/Pictures/screenshots/%Y-%m-%d--%H-%M-%S--$wx$h.p
 bindsym --release Print exec scrot $screenie_path
 bindsym --release Shift+Print exec scrot -s $screenie_path
 
-# Rhythmbox controls
-bindcode 110 exec rhythmbox-client --previous  # Home
-bindcode 115 exec rhythmbox-client --play-pause  # End
-bindcode 118 exec rhythmbox-client --next  # Insert
-
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
 bar {
-    status_command i3status
-    font pango:FontAwesome, firamono 6
+    # status_command i3status
+    status_command i3blocks
+    font pango:FontAwesome, firamono 5
 
     tray_padding 1
 
     separator_symbol |
+
+    strip_workspace_numbers yes
 
     colors {
            #                  Backgrd Border  Text Color

@@ -12,6 +12,9 @@ link() {
   sudo ln -s $P/$1 $2
 }
 
+mkdir -p ~/.config/dunst
+link dunstrc ~/.config/dunst/dunstrc
+
 link emacs.el ~/.emacs
 link emacs.d ~/.emacs.d
 
@@ -29,7 +32,10 @@ link hg/rc ~/.hgrc
 
 link irbrc.rb ~/.irbrc
 
+mkdir -p ~/.config/i3
+mkdir -p ~/.config/i3blocks
 link i3/conf ~/.config/i3/config
+link i3/blocks.conf ~/.config/i3blocks/config
 link i3/status ~/.i3status.conf
 
 link nginx-dev.conf /etc/nginx/sites-enabled/dev
@@ -37,3 +43,5 @@ link nginx-dev.conf /etc/nginx/sites-enabled/dev
 link psqlrc.sql ~/.psqlrc
 
 link xinitrc ~/.xinitrc
+
+link bin/keylight /etc/pm/sleep.d/10keylight

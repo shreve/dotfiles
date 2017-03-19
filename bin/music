@@ -1,10 +1,27 @@
 #!/usr/bin/env bash
 
+# music
+#
+# A wrapper tool for cmus player
+#
+# (c) 2017 Jacob Shreve
+#
+# This executable serves several purposes
+# 1. CLI for cmus without opening via `cmus-remote`
+# 2. Detachable wrapper for cmus
+#    Running `music` starts a screen session containing cmus. The q command is
+#    bound to detach from the session inside cmus, so music plays in the
+#    background, and it's easy to attach and control
+# 3. Generate the status line for i3blocks
+# 4. Alert of the current track using notify-send
+
+# These paths all contain full paths because sometimes root uses this
 log=/home/jacob/.config/cmus/log
 socket=/home/jacob/.config/cmus/socket
 server="--server $socket"
 cache=/home/jacob/.cache/cmus-status
 
+# We only need to call cmus-remote once, then read from cache file as needed
 cmus-remote $server -Q > $cache
 
 echo $@ >> $log
@@ -41,29 +58,30 @@ quit() {
 }
 
 status-line() {
-    echo "$(icons)  :: $(artist) :: $(song)"
+    echo "$(icons)  :: $(artist) :: $(song)" | sanitize
 }
+
 
 
 ################   Data   ####################
 artist () {
-    cat $cache | grep "tag artist" | awk '{$1=$2=""; print $0}' | sed 's/^\s\+//'
+    grep " artist " $cache | awk '{$1=$2=""; print $0}' | sed 's/^\s\+//'
 }
 
 song () {
-    cat $cache | grep title | awk '{$1=$2=""; print $0}' | sed 's/^\s\+//'
+    grep title $cache        | awk '{$1=$2=""; print $0}' | sed 's/^\s\+//'
 }
 
 status () {
-    cat $cache | grep status | awk '{print $2}'
+    grep status $cache       | awk '{print $2}'
 }
 
 shuffle() {
-    grep "shuffle" $cache | awk '{print $3}'
+    grep "shuffle" $cache    | awk '{print $3}'
 }
 
 repeat() {
-    grep "repeat " $cache | awk '{print $3}'
+    grep "repeat " $cache    | awk '{print $3}'
 }
 
 icons () {
@@ -115,11 +133,19 @@ alert_current() {
     fi
 }
 
+# Colorize for pango, which powers i3blocks
 colorize() {
     echo "<span foreground=\"$1\"> $2 </span>"
 }
 
+sanitize() {
+    sed -e 's/\&/&amp;/'
+}
+
 case "$1" in
+
+    # In most cases, play really means `toggle pause`.
+    # To cmus, play means play the current file from the beginning.
     play|pause)
         pause
         ;;
@@ -132,11 +158,10 @@ case "$1" in
         next
         ;;
 
-    socket)
-        echo $socket
-        ;;
-
     start)
+        # The --i3 flag opens a new terminal to re-run the command without the
+        # flag. This is useful because i3 can't start a screen session using
+        # exec. `music start` needs to be run from a terminal to work.
         if [[ $* = *--i3* ]]; then
             if ! pgrep cmus; then
                 gnome-terminal --command "$0 start"
@@ -157,12 +182,18 @@ case "$1" in
 
     status-line)
         status-line
-        exit 0
+        exit 0 # Exit instead of updating i3blocks to avoid infinite loop
         ;;
 
-    *)
+    info)
+        status-line
+        cmus-remote $server -Q
+        ;;
+
+    "")
         start
         ;;
 esac
 
+# Always send the update signal to i3blocks.
 update_i3blocks

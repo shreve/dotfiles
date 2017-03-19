@@ -58,7 +58,7 @@ quit() {
 }
 
 status-line() {
-    echo "$(icons)  :: $(artist) :: $(song)" | sanitize
+    echo "$(icons)  :: $(artist) :: $(song)" | sanitize | truncate
 }
 
 
@@ -140,6 +140,16 @@ colorize() {
 
 sanitize() {
     sed -e 's/\&/&amp;/'
+}
+
+truncate() {
+    local length=125
+    read text
+    if [ "$(echo $text | wc -c)" -gt "$length" ]; then
+        echo "$(echo $text | cut -c 1-$length)..."
+    else
+        echo $text
+    fi
 }
 
 case "$1" in

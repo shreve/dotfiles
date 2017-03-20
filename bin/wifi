@@ -53,12 +53,15 @@ without_vpn() {
     for vpn in $vpns; do
         nmcli c down $vpn >/dev/null;
     done
+    sleep 1
 
     eval $@
 
     for vpn in $vpns; do
         nmcli c up $vpn >/dev/null;
     done
+    sleep 1
+    update_i3blocks
 }
 
 case $1 in

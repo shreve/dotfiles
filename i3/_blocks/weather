@@ -13,7 +13,7 @@ all_data () {
     # If the cache was not last modified less than 10 minutes ago
     if cache_invalid; then
         # Update the cache
-        without_vpn update_cache
+        /home/jacob/code/dotfiles/bin/wifi without_vpn $0 force_update
     fi
     cat $cache;
 }
@@ -60,21 +60,14 @@ fetch_city () {
               org.freedesktop.Geoclue.Address.GetAddress | grep locality | awk '{$1=""; print $0}' | sed 's/ )//' | sed 's/^\s\+//'
 }
 
-without_vpn() {
-    if nmcli c | grep vpn | grep wlp4s0 >/dev/null; then
-        nmcli c down PIA >/dev/null
-        sleep 0.5
-        eval "$@"
-        nmcli c up PIA >/dev/null
-    else
-        eval "$@"
-    fi
-}
-
 case "$1" in
 
     update)
         touch --date=2000-01-01 $cache
+        ;;
+
+    force_update)
+        update_cache
         ;;
 
     info)

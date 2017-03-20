@@ -41,12 +41,27 @@ current_network() {
 }
 
 update_i3blocks() {
-    sleep 1
     pkill -RTMIN+13 i3blocks
 }
 
-case $1 in
+list_vpns() {
+    nmcli c | grep vpn | grep wlp4s0 | awk '{print $1}'
+}
 
+without_vpn() {
+    vpns=$(list_vpns)
+    for vpn in $vpns; do
+        nmcli c down $vpn >/dev/null;
+    done
+
+    eval $@
+
+    for vpn in $vpns; do
+        nmcli c up $vpn >/dev/null;
+    done
+}
+
+case $1 in
     list)
         list;
         ;;
@@ -94,6 +109,11 @@ case $1 in
         echo "PASS: " $(password)
         ;;
 
+    without_vpn)
+        shift
+        without_vpn "$@"
+        ;;
+
     *)
         echo "Usage: wifi command [arguments]"
         echo "  on                  turn networking on"
@@ -105,5 +125,6 @@ case $1 in
         echo "  leave ssid          turn off an existing network based on SSID"
         echo "  remove ssid         forget about an existing network connection"
         echo "  password            (requires sudo) show the current network password"
+        echo "  without_vpn cmd     disable VPN, eval cmd, enable VPN"
         ;;
 esac

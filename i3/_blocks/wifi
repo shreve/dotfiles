@@ -11,10 +11,15 @@ if [[ "$(cat /sys/class/net/$INTERFACE/operstate)" = 'down' ]]; then
     exit
 fi
 
-
 QUALITY=$(grep $INTERFACE /proc/net/wireless | awk '{ print int($3 * 100 / 70) }')
 SSID=$(iwgetid -r)
-ADDR=$(hostname -I)
+#ADDR=$(hostname -I)
+
+if nmcli c | grep vpn | grep wlp4s0 >/dev/null; then
+    VPN=$(colorize '#00FF00' 'ON')
+else
+    VPN=$(colorize '#FF0000' 'OFF')
+fi
 
 # color
 if [[ $QUALITY -ge 80 ]]; then
@@ -27,4 +32,4 @@ else
     color="#FF0000"
 fi
 
-echo "$(colorize '#00ff00' "  $SSID $ADDR")[$(colorize $color $QUALITY%)]"
+echo "$(colorize '#00ff00' "  $SSID") [$VPN][$(colorize $color $QUALITY%)]"

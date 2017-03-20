@@ -40,46 +40,56 @@ current_network() {
     nmcli c show --active | tail -1 | sed -e 's/  .*//g'
 }
 
+update_i3blocks() {
+    sleep 1
+    pkill -RTMIN+13 i3blocks
+}
+
 case $1 in
 
-    "list")
+    list)
         list;
         ;;
 
-    "new")
+    new)
         new "$2";
         ;;
 
-    "join")
+    join)
         join "$2";
+        update_i3blocks
         ;;
 
-    "leave")
-        leave "$3";
+    leave)
+        leave "$2";
+        update_i3blocks
         ;;
 
-    "status"|"st")
+    status|st)
         nmcli c;
         ;;
 
-    "remove"|"rm")
+    remove|rm)
         remove "$2";
         ;;
 
-    "restart")
+    restart)
         nmcli n off
         nmcli n on
         ;;
 
-    "off")
+    off)
         nmcli n off
+        update_i3blocks &
         ;;
 
-    "on")
+    on)
         nmcli n on
+        update_i3blocks &
         ;;
 
-    "password"|"pw")
+    password|pw)
+        sudo -v
         echo "SSID: " $(current_network)
         echo "PASS: " $(password)
         ;;
@@ -92,6 +102,7 @@ case $1 in
         echo "  list                list available SSIDs"
         echo "  new ssid            join a new network based on SSID"
         echo "  join ssid           join an existing network based on SSID"
+        echo "  leave ssid          turn off an existing network based on SSID"
         echo "  remove ssid         forget about an existing network connection"
         echo "  password            (requires sudo) show the current network password"
         ;;

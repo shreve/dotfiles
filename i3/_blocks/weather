@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 
 cache=~/.cache/weather
-key=2dc080dab74bf74a1603a2290350af81
+key=$(cat ~/.config/darksky.key)
 url="https://api.darksky.net/forecast/$key"
 params="?exclude=alerts,flags,daily,hourly,minutely"
 
+cache_invalid() {
+    return $(find $cache -mmin -10 | wc -l)
+}
+
 all_data () {
     # If the cache was not last modified less than 10 minutes ago
-    if ! find $cache -mmin -10; then
+    if cache_invalid; then
         # Update the cache
         without_vpn update_cache
     fi

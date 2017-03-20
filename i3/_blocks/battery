@@ -15,13 +15,13 @@ alert () {
 }
 
 color () {
-    local percent=$(echo "$pct / 100" | bc -l)
+    local percent=$(bc -l <<< "$pct / 100")
     if [ "$pct_int" -gt "50" ]; then
-        red=$(echo "255 * (2 - ($percent * 2))" | bc -l)
+        red=$(bc -l <<< "255 * 2 * (1 - $percent)")
         green=255
     else
         red=255
-        green=$(echo "255 * $percent * 2" | bc -l)
+        green=$(bc -l <<< "255 * 2 * $percent")
     fi
     echo "#$(/home/jacob/code/dotfiles/bin/num2hex $red $green 0)"
 }

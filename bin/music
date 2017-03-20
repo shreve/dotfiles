@@ -129,7 +129,7 @@ update_i3blocks () {
 
 alert_current() {
     if pgrep cmus >/dev/null; then
-        notify-send -u low -a cmus "Currently Playing" "$(artist) :: $(song)"
+        notify-send -t 10 -u low -a cmus "Currently Playing" "$(artist) :: $(song)"
     fi
 }
 
@@ -143,7 +143,7 @@ sanitize() {
 }
 
 truncate() {
-    local length=125
+    local length=$(bc -l <<< "50 + $(echo $(icons) | wc -c)")
     read text
     if [ "$(echo $text | wc -c)" -gt "$length" ]; then
         echo "$(echo $text | cut -c 1-$length)..."

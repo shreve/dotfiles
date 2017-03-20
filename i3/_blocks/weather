@@ -1,30 +1,29 @@
 #!/usr/bin/env bash
 
-file=~/.cache/weather
+cache=~/.cache/weather
 key=2dc080dab74bf74a1603a2290350af81
 url="https://api.darksky.net/forecast/$key"
 params="?exclude=alerts,flags,daily,hourly,minutely"
 
-cache_valid () {
-    # If the file is found, it's older than 10 minutes, and we should update the cache
-    return $(expr 1 - $(find $file -mmin -10 | wc -l))
-}
-
 all_data () {
-
-    # If the cache is invalid, fetch the data again
-    cache_valid
-    if [ "$?" != "0" ]; then
-        data=$(curl -s -N "$url/$(coords)$params")
-        if [ "$?" = "0" ]; then
-          echo $data | json_pp > $file;
-        fi
+    # If the cache was not last modified less than 10 minutes ago
+    if ! find $cache -mmin -10; then
+        # Update the cache
+        without_vpn update_cache
     fi
-    cat $file;
+    cat $cache;
 }
 
-city () {
-    all_data | grep City | sed -E 's/^[^:]+: //' | sed -E 's/,.*$//'
+update_cache() {
+    data=$(curl -s -N "$url/$(coords)$params")
+    if [ "$?" = "0" ]; then
+        echo $data | json_pp > $cache;
+        echo "city:$(fetch_city)" >> $cache;
+    fi
+}
+
+city() {
+    all_data | grep city | awk -F ':' '{print $2}'
 }
 
 status () {
@@ -39,30 +38,48 @@ apparent_temp () {
     all_data | grep apparent | awk '{ print $3 }' | sed 's/,//'
 }
 
-location () {
+fetch_location () {
     dbus-send --type=method_call --print-reply=literal \
               --dest="org.freedesktop.Geoclue.Providers.UbuntuGeoIP" \
               /org/freedesktop/Geoclue/Providers/UbuntuGeoIP \
               org.freedesktop.Geoclue.Position.GetPosition
 }
 
-city () {
+coords () {
+    fetch_location | grep double | head -n 2 | awk '{ print $2 }' | tr '\n' ',' | sed 's/,$//'
+}
+
+fetch_city () {
     dbus-send --type=method_call --print-reply=literal \
               --dest="org.freedesktop.Geoclue.Providers.UbuntuGeoIP" \
               /org/freedesktop/Geoclue/Providers/UbuntuGeoIP \
               org.freedesktop.Geoclue.Address.GetAddress | grep locality | awk '{$1=""; print $0}' | sed 's/ )//' | sed 's/^\s\+//'
 }
 
-coords () {
-    location | grep double | head -n 2 | awk '{ print $2 }' | tr '\n' ',' | sed 's/,$//'
+without_vpn() {
+    if nmcli c | grep vpn | grep wlp4s0 >/dev/null; then
+        nmcli c down PIA >/dev/null
+        sleep 0.5
+        eval "$@"
+        nmcli c up PIA >/dev/null
+    else
+        eval "$@"
+    fi
 }
 
 case "$1" in
 
     update)
-        touch --date=2000-01-01 $file
+        touch --date=2000-01-01 $cache
         ;;
 
-esac
+    info)
+        echo "City: $(city)"
+        echo "Location: $(coords)"
+        echo "Temp: $(temp)"
+        ;;
 
-echo "$(city) :: $(status) :: $(temp)/$(apparent_temp)°F"
+    *)
+        echo "$(city) :: $(status) :: $(temp)/$(apparent_temp)°F"
+        ;;
+esac

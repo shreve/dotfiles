@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+case $BLOCK_BUTTON in
+    1)
+        /home/jacob/code/dotfiles/bin/music pause
+        ;;
+esac
+
 status=$(/home/jacob/code/dotfiles/bin/music status-line)
 
 [ "$status" = "" ] && exit 1

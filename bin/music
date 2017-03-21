@@ -129,7 +129,9 @@ update_i3blocks () {
 
 alert_current() {
     if pgrep cmus >/dev/null; then
-        notify-send -t 10 -u low -a cmus "Currently Playing" "$(artist) :: $(song)"
+        if [ "$(status)" = "playing" ]; then
+            notify-send -t 10 -u low -a cmus "Currently Playing" "$(artist) :: $(song)"
+        fi
     fi
 }
 

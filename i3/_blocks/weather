@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+case $BLOCK_BUTTON in
+    1)
+        xdg-open "https://darksky.net" >/dev/null
+        ;;
+esac
+
 cache=~/.cache/weather
 key=$(cat ~/.config/darksky.key)
 url="https://api.darksky.net/forecast/$key"

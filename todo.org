@@ -1,11 +1,11 @@
-* Improve i3 bar [4/8]
+* Improve i3 bar [5/8]
   - [X] Colorize energy usage in battery module
   - [X] Add scroll support to brightness like volume
   - [X] Add click support to cpu module to open a console with htop
   - [X] Add click support to battery module to open console with powertop
   - [ ] Add click support to weather module to open dark sky forecast
   - [ ] Add click support to music module to open cmus
-  - [ ] Add click support to volume module to toggle mute
+  - [X] Add click support to volume module to toggle mute
   - [ ] Add click support to wifi module to open network connections
 
 * Improve screensaver / brightness control [2/3]

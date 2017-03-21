@@ -62,8 +62,8 @@ remaining=$(acpi | awk '{printf $5}' | cut -d':' -f 1-2)
 power=$(printf "%.1f" $(bc -l <<< "$(prop power_now) / 1000000"))
 
 # The power percentage is the value of the current rate as a percentage of the
-# scale from 6 to 12, then capped at 0 and 100.
-power_percent=$(within_range 0 100 $(for_range 6 12 $power))
+# scale from 6 to 13, then capped at 0 and 100.
+power_percent=$(within_range 0 100 $(for_range 6 13 $power))
 
 charge_color=$(color $charge)
 power_color=$(color $power_percent)

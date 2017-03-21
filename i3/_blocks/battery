@@ -53,4 +53,10 @@ else
   alert
 fi
 
+case $BLOCK_BUTTON in
+    1)
+        gnome-terminal --command "sudo powertop"
+        ;;
+esac
+
 echo "$(colorize "$color" "$icon  $percent") [$remaining][$rate]"

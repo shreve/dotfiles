@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 case $BLOCK_BUTTON in
+    1)
+        xscreensaver-command -activate >/dev/null
+        ;;
+
     4)
         /home/jacob/code/dotfiles/bin/backlight -
         ;;

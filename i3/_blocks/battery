@@ -4,7 +4,6 @@
 case $BLOCK_BUTTON in
     1)
         gnome-terminal --command "sudo powertop"
-        exit 0
         ;;
 esac
 

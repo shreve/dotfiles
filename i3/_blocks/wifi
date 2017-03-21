@@ -1,5 +1,11 @@
 #!/bin/bash
 
+case $BLOCK_BUTTON in
+    1)
+        nm-connection-editor
+        ;;
+esac
+
 colorize () {
     echo "<span foreground=\"$1\">$2</span>"
 }

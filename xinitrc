@@ -1,31 +1,29 @@
 #!/bin/bash
 
 # Remap caps lock to a left control key
-xmodmap -e "remove lock = Caps_Lock"
+xmodmap -e "clear lock"
 xmodmap -e "keycode 66 = Control_L"
 xmodmap -e "add control = Control_L"
 
-xset r rate 250 60  # Set keyboard repeat rate
-# xset +dpms          # Turn on Energy Star features
-# xset dpms 60 60 60  # Turn off the monitor after 60 seconds
-# xset s off          # Turn off the screen saver
+# Set keyboard repeat rate
+xset r rate 250 60
 
+# Set display resolution
+xrandr --dpi 200
+
+# Set wallpaper
 feh --bg-scale /home/jacob/Pictures/wallpaper.jpg
 
 # Enable flux to run in the background
 fluxgui &
 
-# Set display resolution
-xrandr --dpi 200
-
 # Start Enpass and kill the window that pops up
 /opt/Enpass/bin/runenpass.sh &
-sleep 0.5 ; i3-msg kill
+sleep 0.5 ; i3-msg kill >/dev/null
 
-exec gnome-settings-daemon &
+exec gnome-settings-daemon >/dev/null 2>&1 &
 
-exec xscreensaver &
-exec /home/jacob/code/dotfiles/bin/keylight watch-screen
+exec xscreensaver -no-splash >/dev/null 2>&1 &
+exec /home/jacob/code/dotfiles/bin/keylight watch-screen >/dev/null 2>&1 &
 
-i3-msg reload
 i3-msg restart

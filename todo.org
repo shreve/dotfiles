@@ -1,5 +1,5 @@
-* Improve i3 bar [1/8]
-  - [ ] Colorize energy usage in battery module
+* Improve i3 bar [2/8]
+  - [X] Colorize energy usage in battery module
   - [ ] Add scroll support to brightness like volume
   - [ ] Add click support to cpu module to open a console with htop
   - [X] Add click support to battery module to open console with powertop

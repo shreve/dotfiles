@@ -38,7 +38,7 @@ rate=$(printf "%.2f W" $rate)
 
 color=$(color)
 if [ "$(prop status)" == "Charging" ]; then
-   icon="⚡⚡"
+   icon=""
    color='#FFFF00'
 elif [ "$pct_int" -gt "90" ]; then
   icon=""

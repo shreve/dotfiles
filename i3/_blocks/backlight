@@ -5,6 +5,10 @@ case $BLOCK_BUTTON in
         xscreensaver-command -activate >/dev/null
         ;;
 
+    3)
+        /home/jacob/code/dotfiles/bin/keylight cycle
+        ;;
+
     4)
         /home/jacob/code/dotfiles/bin/backlight -
         ;;

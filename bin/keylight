@@ -95,6 +95,14 @@ backlight_change() {
             fi
             ;;
 
+        cycle)
+            if [ $(backlight_get) -eq $(backlight_get_max) ]; then
+                backlight_change "off"
+            else
+                backlight_change "up"
+            fi
+            ;;
+
         *)
             echo "Invalid backlight change ${change}." >&2
             echo "Should be 'up' or 'down' or a number between"           \

@@ -18,8 +18,8 @@ colorize () {
 }
 
 alert () {
-    /usr/bin/notify-send --expire-time=2000 --urgency=critical \
-                         "Low Battery" "($percent) $remaining remaining"
+    /usr/bin/notify-send --expire-time=3000 --urgency=critical \
+                         "Low Battery" "($charge%) $remaining remaining"
 }
 
 color () {
@@ -70,7 +70,8 @@ power_color=$(color $power_percent)
 
 if [ "$(prop status)" == "Charging" ]; then
    icon=""
-   pct_color='#FFFF00'
+   charge_color='#FFFF00'
+   power_color='#FFFF00'
 elif [ "$charge" -gt "90" ]; then
   icon=""
 elif [ "$charge" -gt "50" ]; then

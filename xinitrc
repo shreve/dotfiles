@@ -25,5 +25,6 @@ exec gnome-settings-daemon >/dev/null 2>&1 &
 
 exec xscreensaver -no-splash >/dev/null 2>&1 &
 exec /home/jacob/code/dotfiles/bin/keylight watch-screen >/dev/null 2>&1 &
+exec brightside &
 
 i3-msg restart

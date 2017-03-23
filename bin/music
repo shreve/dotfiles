@@ -193,6 +193,7 @@ case "$1" in
         ;;
 
     status-line)
+        [ "$(cat $cache)" = "" ] && exit 1
         status-line
         exit 0 # Exit instead of updating i3blocks to avoid infinite loop
         ;;

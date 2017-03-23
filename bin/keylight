@@ -24,7 +24,7 @@ dark_hour=1800
 this=$(dirname $0)/keylight
 
 time_of_day() {
-    date '+%H%M'
+    date '+%H%M' | bc
 }
 
 backlight_get() {
@@ -113,7 +113,9 @@ backlight_change() {
 }
 
 watch_for_screen_changes() {
-    nohup xscreensaver-command -watch | __watch_loop
+    if ! pgrep -f "xscreensaver-command -watch" > /dev/null; then
+        nohup xscreensaver-command -watch | __watch_loop 2>&1 &
+    fi
 }
 
 __watch_loop() {

@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+dest="org.freedesktop.Geoclue.Providers.UbuntuGeoIP"
+callpath=/org/freedesktop/Geoclue/Providers/UbuntuGeoIP
+prefix=org.freedesktop.Geoclue
+
+args="--type=method_call --print-reply=literal --dest=$dest $callpath"
+
+fetch_data() {
+    position=$(dbus-send $args $prefix.Position.GetPosition)
+    address=$(dbus-send $args $prefix.Address.GetAddress)
+}
+
+latitude() {
+    echo "$position" | grep double | head -n 1 | awk '{print $2}'
+}
+
+longitude() {
+    echo "$position" | grep double | head -n 2 | tail -n 1 | awk '{print $2}'
+}
+
+country() {
+    __addr_prop country
+}
+
+timezone() {
+    __addr_prop timezone
+}
+
+state() {
+    __addr_prop region
+}
+
+city() {
+    __addr_prop locality
+}
+
+zip() {
+    __addr_prop postalcode
+}
+
+__addr_prop() {
+    echo "$address" | grep " $1 " | awk '{$1=""; print $0}' | sed 's/ )//' | sed 's/^\s\+//'
+}
+
+__print_prop() {
+    value=$($1)
+    if [ "$value" ]; then
+        echo "$1 $($1)"
+    fi
+}
+
+props=(
+    "longitude"
+    "latitude"
+    "city"
+    "state"
+    "zip"
+    "country"
+    "timezone"
+)
+
+fetch_data
+
+for prop in "${props[@]}"; do
+    __print_prop $prop
+done

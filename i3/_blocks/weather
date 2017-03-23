@@ -25,15 +25,16 @@ all_data () {
 }
 
 update_cache() {
+    location=$(/home/jacob/code/dotfiles/bin/location)
     data=$(curl -s -N "$url/$(coords)$params")
     if [ "$?" = "0" ]; then
         echo $data | json_pp > $cache;
-        echo "city:$(fetch_city)" >> $cache;
+        echo "$location" >> $cache;
     fi
 }
 
 city() {
-    all_data | grep city | awk -F ':' '{print $2}'
+    all_data | grep city | awk '{$1=""; print $0}' | sed 's/^\s\+//'
 }
 
 status () {
@@ -48,22 +49,10 @@ apparent_temp () {
     all_data | grep apparent | awk '{ print $3 }' | sed 's/,//'
 }
 
-fetch_location () {
-    dbus-send --type=method_call --print-reply=literal \
-              --dest="org.freedesktop.Geoclue.Providers.UbuntuGeoIP" \
-              /org/freedesktop/Geoclue/Providers/UbuntuGeoIP \
-              org.freedesktop.Geoclue.Position.GetPosition
-}
-
 coords () {
-    fetch_location | grep double | head -n 2 | awk '{ print $2 }' | tr '\n' ',' | sed 's/,$//'
-}
-
-fetch_city () {
-    dbus-send --type=method_call --print-reply=literal \
-              --dest="org.freedesktop.Geoclue.Providers.UbuntuGeoIP" \
-              /org/freedesktop/Geoclue/Providers/UbuntuGeoIP \
-              org.freedesktop.Geoclue.Address.GetAddress | grep locality | awk '{$1=""; print $0}' | sed 's/ )//' | sed 's/^\s\+//'
+    lat=$(echo "$location" | grep latitude | awk '{print $2}')
+    lng=$(echo "$location" | grep longitude | awk '{print $2}')
+    echo "$lat,$lng"
 }
 
 case "$1" in
@@ -74,12 +63,6 @@ case "$1" in
 
     force_update)
         update_cache
-        ;;
-
-    info)
-        echo "City: $(city)"
-        echo "Location: $(coords)"
-        echo "Temp: $(temp)"
         ;;
 
     *)

@@ -1,0 +1,57 @@
+#############################    Settings      ################################
+  set beep_new
+  set editor         = 'emacs'
+  set folder         = ~/Mail
+  set forward_format = 'Fwd: %s'
+  set header_cache   = '~/.mutt/cache/headers'
+  set index_format   = "%2C │ %Z │ %d │ %-30.30F (%-4.4c) %s"
+  set mbox_type      = Maildir
+  set menu_scroll
+
+  set ssl_starttls=yes
+  set ssl_force_tls=yes
+
+  set message_cachedir = '~/.mutt/cache/bodies'
+  set certificate_file = '~/.mutt/certificates'
+
+  set move = no
+  set imap_keepalive = 900
+
+  set sort=threads
+  set sort_aux=reverse-last-date-received
+unset sort_re
+unset wait_key
+
+  set date_format="%a %b %d %Y, %-2I:%M%P"
+
+  set sidebar_visible = yes
+  set sidebar_width = 25
+  set sidebar_format = '%B%?N? [%N]?%* %S'
+  set sidebar_divider_char = '│'
+  set sidebar_short_path
+
+  set mail_check_stats
+  set mail_check = 600
+
+#############################    Bindings      ################################
+bind index gg first-entry
+bind index G last-entry
+
+bind index Q "quit"
+macro index q "<pipe-entry>screen -d email<enter>"
+
+bind index,pager J sidebar-next
+bind index,pager K sidebar-prev
+bind index,pager ! sidebar-open
+
+bind index,pager B sidebar-toggle-visible
+
+macro index <f2> '<sync-mailbox><enter-command>source ~/.mutt/accounts/umich.edu<enter><change-folder>!<enter>'
+macro index <f3> '<sync-mailbox><enter-command>source ~/.mutt/accounts/wellopp.com<enter><change-folder>!<enter>'
+macro index <f4> '<sync-mailbox><enter-command>source ~/.mutt/accounts/sugu.org<enter><change-folder>!<enter>'
+
+macro index,pager \cb "<pipe-message> urlscan -c <Enter>" "call urlscan to extract URLs out of a message"
+macro attach,compose \cb "<pipe-entry> urlscan<Enter>" "call urlscan to extract URLs out of a message"
+
+source ~/.mutt/accounts/umich.edu
+source ~/.mutt/colors.mutt

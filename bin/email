@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+
+start() {
+    if ! screen -r -D email >/dev/null ; then
+        screen -S email /usr/local/bin/mutt 2>&1
+    fi
+}
+
+stop() {
+    pkill mutt
+}
+
+case $1 in
+    kill|stop|quit) stop ;;
+    *) start ;;
+esac

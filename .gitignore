@@ -6,3 +6,8 @@ emacs.d/ido.last
 emacs.d/image-dired
 emacs.d/projectile*
 emacs.d/url
+
+mutt/accounts/*
+mutt/cache/*
+mutt/neomutt
+mutt/certificates

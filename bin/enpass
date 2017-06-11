@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+export QT_AUTO_SCREEN_SCALE_FACTOR=0
+
+start() {
+    if ! pgrep Enpass >/dev/null; then
+        nohup /opt/Enpass/bin/runenpass.sh >/dev/null 2>&1  &
+        close_window
+    fi
+}
+
+stop() {
+    pkill Enpass
+}
+
+close_window() {
+    n=0
+    until [ $n -gt 25 ]; do
+        i3-msg '[title="Enpass"] kill' >/dev/null
+        n=$[$n+1]
+        sleep 0.01
+    done
+}
+
+case $1 in
+    restart)
+        stop
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    *)
+        start
+        ;;
+esac

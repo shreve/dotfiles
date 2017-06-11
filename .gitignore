@@ -11,3 +11,5 @@ mutt/accounts/*
 mutt/cache/*
 mutt/neomutt
 mutt/certificates
+
+bin/well

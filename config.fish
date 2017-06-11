@@ -19,7 +19,7 @@ set EDITOR emacs
 set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin $PATH
 set CDPATH ./ ~/ ~/code ~/Documents/School
 
-source ~/.config/fish/conf.d/omf.fish
+source ~/.config/fish/conf.d/omf.fish >/dev/null
 
 status --is-interactive; and source (rbenv init -|psub)
 
@@ -48,7 +48,11 @@ function download
 end
 
 function emacs-bg
-  emacs $argv &
+  if test $argv[1] = 'which'
+    emacs (which $argv[2]) &
+  else
+    emacs $argv &
+  end
 end
 
 alias e emacs-bg
@@ -109,6 +113,10 @@ alias search "find . -type f -name"
 
 function search_and_destroy
   search $argv -delete;
+end
+
+function settings
+  spawn env XDG_CURRENT_DESKTOP=GNOME gnome-control-center
 end
 
 function size

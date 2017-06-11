@@ -32,6 +32,8 @@ font pango:firamono 6
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
+workspace_layout stacked
+default_orientation vertical
 
 # Open scratchpad
 bindsym $mod+space scratchpad show
@@ -42,6 +44,7 @@ bindsym $mod+Return exec gnome-terminal --working-directory="`cat ~/.cache/pwd`"
 
 # open a browser window
 bindsym $mod+b exec google-chrome-stable --force-device-scale-factor=1.25
+bindsym $mod+Shift+b exec google-chrome-stable --force-device-scale-factor=1.25 -incognito
 
 # open an editor
 bindsym $mod+e exec emacs --chdir `cat ~/.cache/pwd`
@@ -177,8 +180,8 @@ bindsym XF86AudioMute        exec $bin/volume mute
 # Screen brightness controls
 bindsym XF86MonBrightnessUp   exec $bin/backlight + # increase screen brightness
 bindsym XF86MonBrightnessDown exec $bin/backlight - # decrease screen brightness
-bindsym F6 exec $bin/keylight up
-bindsym F5 exec $bin/keylight down
+bindsym $mod+XF86MonBrightnessUp   exec $bin/keylight + # increase keyboard brightness
+bindsym $mod+XF86MonBrightnessDown exec $bin/keylight - # decrease keyboard brightness
 
 bindsym XF86Display exec /home/jacob/code/bin/display toggle
 

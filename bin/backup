@@ -3,7 +3,7 @@
 EXIT_CODE=1;
 
 perform_backup() {
-    echo "Starting backup to sync.jacobevanshreve.me" >&2
+    echo "Starting backup to sync server" >&2
     rsync --verbose --recursive --links --perms --times \
           --delete --compress --ignore-existing --archive \
           --human-readable \
@@ -12,6 +12,10 @@ perform_backup() {
           --exclude=.rbenv* \
           --exclude=.ssh/ \
           --exclude=*.DS_Store \
+          --exclude=*.log \
+          --exclude=Downloads \
+          --exclude=.config/google-chrome \
+          --exclude=.config/chromium \
           ~ sync:/home
     # sync is configured in ~/.ssh/config
     EXIT_CODE=$?;
@@ -20,6 +24,7 @@ perform_backup() {
 perform_backup;
 
 while [ $EXIT_CODE -gt 0 ]; do
+    echo "Exited with code " $EXIT_CODE
     echo "Retrying shortly...";
     sleep 3;
     perform_backup;

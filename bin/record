@@ -18,7 +18,8 @@ when 'current'
         "-w #{width} -h #{height} #{filename}"
   puts cmd
   fork do
-    puts `#{cmd}`
+    puts "\033c"
+    `#{cmd}`
     `notify-send "Recording Complete"`
   end
 end

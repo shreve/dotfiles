@@ -21,4 +21,8 @@ data = JSON.parse(`i3-msg -t get_tree`)
 data = focused_window(data['nodes'])
 attr = ARGV.first || 'id'
 
-puts JSON.dump(data[attr])
+if attr == 'all'
+  puts JSON.dump(data)
+else
+  puts JSON.dump(data[attr])
+end

@@ -8,6 +8,6 @@ esac
 
 status=$(/home/jacob/code/dotfiles/bin/music status-line)
 
-[ "$status" = "" ] && exit 1
+[ "$status" = "" ] && exit 0
 
 echo $status

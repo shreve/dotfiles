@@ -22,7 +22,7 @@ server="--server $socket"
 cache=/home/jacob/.cache/cmus-status
 
 # We only need to call cmus-remote once, then read from cache file as needed
-cmus-remote $server -Q > $cache
+cmus-remote $server -Q > $cache 2>&1
 
 echo $@ >> $log
 
@@ -58,18 +58,26 @@ quit() {
 }
 
 status-line() {
-    echo "$(icons)  :: $(artist) :: $(song)" | sanitize | truncate
+    if pgrep cmus >/dev/null 2>&1; then
+       echo "$(icons)  :: $(artist) :: $(song)" | truncate
+    fi
+}
+
+status-line-no-icons() {
+    if pgrep cmus >/dev/null 2>&1; then
+       echo "$(artist) :: $(song)" | truncate
+    fi
 }
 
 
 
 ################   Data   ####################
 artist () {
-    grep " artist " $cache | awk '{$1=$2=""; print $0}' | sed 's/^\s\+//'
+    grep " artist " $cache | awk '{$1=$2=""; print $0}' | sanitize
 }
 
 song () {
-    grep title $cache        | awk '{$1=$2=""; print $0}' | sed 's/^\s\+//'
+    grep title $cache        | awk '{$1=$2=""; print $0}' | sanitize
 }
 
 status () {
@@ -130,7 +138,7 @@ update_i3blocks () {
 alert_current() {
     if pgrep cmus >/dev/null; then
         if [ "$(status)" = "playing" ]; then
-            notify-send -t 10 -u low -a cmus "Currently Playing" "$(artist) :: $(song)"
+            notify-send -t 10 -u low -a cmus "Currently Playing" "$(status-line-no-icons)"
         fi
     fi
 }
@@ -141,7 +149,7 @@ colorize() {
 }
 
 sanitize() {
-    sed -e 's/\&/&amp;/'
+    sed -e 's/\&/&amp;/' | sed -e 's/^\s\+//'
 }
 
 truncate() {
@@ -151,6 +159,57 @@ truncate() {
         echo "$(echo $text | cut -c 1-$length)..."
     else
         echo $text
+    fi
+}
+
+download() {
+    # Download page
+    local page=$(mktemp)
+    curl $1 > $page 2>&1
+
+    # Extract the title, and some artist info from it
+    title=$(awk -vRS="</title>" '/<title>/{gsub(/.*<title>|\n+/,"");print;exit}' $page)
+    rm $page
+    title=$(echo $title | \
+                   sed -e 's/ - YouTube//' | \
+                   sed -e 's/\//-/g' | \
+                   sed -e "s/&#39;/'/g")
+    artist=$(echo $title | awk -F ' - ' '{print $1}')
+    song=$(echo $title | awk -F ' - ' '{print $2}')
+
+    # Prompt for Artist, Song, and Album information
+    read -p "Artist [$artist]: " set_artist
+    read -p "Song [$song]: " set_song
+    read -p "Album []: " set_album
+
+    [ "$set_artist" == "" ] && set_artist=$artist;
+    [ "$set_song" == "" ] && set_song=$song;
+    [ "$set_album" == "" ] && set_album="Unknown Album";
+
+    # Download the song
+    youtube-dl --extract-audio \
+               -f 'mp3/bestaudio' \
+               --audio-format mp3 \
+               --output "~/Music/$set_artist/$set_album/$set_song.%(ext)s" "$1"
+
+    echo "Looking for: $set_song"
+    file=$(find "/home/jacob/Music/$set_artist" -name "*$set_song*")
+    echo "Found: $file"
+
+    if [ -e "$file" ]; then
+        mp3info -a "$set_artist" -l "$set_album" -t "$set_song" "$file"
+        mp3info -i "$file"
+        cmus-remote $server --raw "add $file"
+    fi
+}
+
+edit() {
+    file=$(cmus-remote $server -C "echo {}")
+    echo "$file"
+
+    if [ -e "$file" ]; then
+        mp3info -if "$file"
+        cmus-remote $server -C "update-cache -f"
     fi
 }
 
@@ -175,11 +234,7 @@ case "$1" in
         # flag. This is useful because i3 can't start a screen session using
         # exec. `music start` needs to be run from a terminal to work.
         if [[ $* = *--i3* ]]; then
-            if ! pgrep cmus; then
-                gnome-terminal --command "$0 start"
-            else
-                play
-            fi
+            gnome-terminal --command "$0 start"
         else
             start
         fi
@@ -202,6 +257,19 @@ case "$1" in
         cmus-remote $server -Q
         ;;
 
+    dl)
+        [ $# -lt 2 ] && exit 1
+        download $2
+        ;;
+
+    edit)
+        if [[ $* = *--cmus* ]]; then
+            nohup gnome-terminal --command "$0 edit" &
+        else
+            edit
+        fi
+        ;;
+
     "")
         start
         ;;
@@ -215,7 +283,8 @@ prev             restart song or jump to previous song
 next             jump to next track
 quit or kill     properly quit the cmus player
 status-line      get a one-line summary of cmus
-info             get all the info from cmus about its status"
+info             get all the info from cmus about its status
+dl url           download a youtube video and add it to your library"
         ;;
 
 esac

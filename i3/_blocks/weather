@@ -12,11 +12,16 @@ url="https://api.darksky.net/forecast/$key"
 params="?exclude=alerts,flags,daily,hourly,minutely"
 
 cache_invalid() {
-    return $(find $cache -mmin -10 | wc -l)
+    # The cache is invalid if it's older than 10 minutes.
+    # -mmin -10 searches for files last modified less than 10 minutes ago,
+    # so if $valid_caches is 0, the cache is invalid.
+    valid_caches=$(find $cache -mmin -10 | wc -l)
+    city=$(cat $cache | grep city)
+
+    test $valid_caches = "0" || test -z "$city"
 }
 
 all_data () {
-    # If the cache was not last modified less than 10 minutes ago
     if cache_invalid; then
         # Update the cache
         /home/jacob/code/dotfiles/bin/wifi without_vpn $0 force_update

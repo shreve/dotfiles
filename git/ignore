@@ -8,6 +8,7 @@ tags
 .projectile
 jake.rake
 notes.org
+.dir-locals.el
 
 # Mercurial
 .hg

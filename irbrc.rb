@@ -1,5 +1,4 @@
 # coding: utf-8
-puts " 💎  Ruby #{RUBY_VERSION}"
 
 # IRB extensions
 require 'irb/completion'
@@ -7,13 +6,42 @@ require 'ap'
 require 'benchmark'
 require 'fileutils'
 
+ANSI = {
+  reset:     "\e[0m",
+  bold:      "\e[1m",
+  underline: "\e[4m",
+  lgray:     "\e[0;37m",
+  gray:      "\e[1;30m",
+  lred:      "\e[1;31m",
+  red:       "\e[31m",
+  green:     "\e[32m",
+  yellow:    "\e[33m",
+  blue:      "\e[34m",
+  magenta:   "\e[35m",
+  cyan:      "\e[36m",
+  white:     "\e[37m"
+}.freeze
+
+def color(*args)
+  string = ''
+  text = args.pop
+  args.each { |style| string << ANSI[style] }
+  string << text
+  string << ANSI[:reset]
+  string
+end
+
+puts " #{color :red, '💎'}  Ruby #{RUBY_VERSION}"
+
 if defined?(Rails)
   path = Rails.root.join('log/railsc.log').to_s
-  prompt = "[\e[1;31mrails/#{Rails.env}\e[0m]$ "
+  tag = "rails/#{Rails.env}"
 else
   path = File.expand_path('~/.irb_history')
-  prompt = "[\e[1;31mirb/local\e[0m]$ "
+  tag = 'irb/local'
 end
+
+prompt = "[#{color :lred, :underline, tag}]$ "
 
 FileUtils.touch(path) unless File.exist?(path)
 
@@ -35,12 +63,12 @@ AwesomePrint.irb!
 
 # copy a string to the clipboard
 def copy(string)
-  IO.popen('xclip', 'w') { |f| f << string.to_s.strip }
+  IO.popen('xsel', 'w') { |f| f << string.to_s.strip }
   string
 end
 
 def paste
-  `xclip -o`.strip
+  `xsel -o`.strip
 end
 
 def clear
@@ -55,8 +83,15 @@ def git(*args)
   puts `git #{args.join(' ')}`
 end
 
-def st
-  'st'
+%w(st diff ck rb).each do |cmd|
+  define_method(cmd) { cmd }
+end
+
+def colors
+  ANSI.keys.each do |key|
+    puts color(key, key.to_s)
+  end
+  nil
 end
 
 # d'oh
@@ -92,32 +127,18 @@ class Array
   end
 end
 
-def recursive_require(*names)
-  names.each do |name|
-    next if a_dumb_file?(name)
-    pwd = File.absolute_path('.')
-    dir = File.join(pwd, name)
-    Dir.entries(dir).each do |file|
-      file = File.join(name, file)
-      rec_req(file)
-    end
-    File.file?(dir) and require dir
+# Access a random time between Jan 1, 1970 and now
+class Time
+  def self.random(from = Time.at(0), to = Time.now)
+    Time.at(rand(to.to_f - from.to_f) + from.to_f)
   end
 end
-alias rr recursive_require
 
-def a_dumb_file?(name)
-  name = File.basename(name)
-  %w(.DS_Store . ..).include?(name)
-end
-
-def bench(test = nil, iterations = 10, &block)
-  return 'You w0t m8?' if (!block_given? and test.nil?)
+def bench(test = nil, iterations = 10)
+  return 'You w0t m8?' if !block_given? && test.nil?
   times = []
   iterations.times do
-    times.push(1_000_000 * Benchmark.realtime do
-      block_given? ? yield : test.call
-    end)
+    times.push(1_000_000 * Benchmark.realtime { block_given? ? yield : test.call })
   end
   puts "Max: #{times.max}μs\n" \
        "Min: #{times.min}μs\n" \
@@ -126,6 +147,6 @@ def bench(test = nil, iterations = 10, &block)
 end
 
 # Allow directory-specific irb config
-if File.exist?(path = File.join(Dir.pwd, '.irbrc'))
+if File.exist?(path = File.join(Dir.pwd, '.irbrc')) and __FILE__ != path
   load path
 end

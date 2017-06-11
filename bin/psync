@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+mount="/media/android"
+drive_root="$mount/Internal shared storage"
+
+install() {
+    sudo apt install jmtpfs
+}
+
+quit() {
+    sudo pkill jmtpfs
+    fusermount -u $mount 2>/dev/null
+}
+
+initialize() {
+    echo "Initializing android phone as drive"
+    sudo jmtpfs $mount -o allow_other -o auto_unmount -o default_permissions
+
+    if is_initialized; then
+        echo "Drive mounted sucessfully";
+    else
+        echo "Drive not mounted successfully. Unmounting";
+        quit
+    fi
+}
+
+is_initialized() {
+    [[ -d $drive_root ]]
+}
+
+sync_music() {
+    sudo rsync --verbose --update --delete --recursive --inplace --dirs ~/Music/* "$drive_root/Music/"
+}
+
+auto_initialize() {
+    if ! is_initialized; then
+        initialize
+
+        if ! is_initialized; then
+            echo "Unable to initialize"
+            exit 1
+        fi
+    else
+        echo "Already initialized"
+    fi
+}
+
+case $1 in
+
+    init)
+        auto_initialize
+        ;;
+
+    music)
+        auto_initialize
+        sync_music
+        ;;
+
+
+    quit)
+        quit
+        ;;
+
+esac

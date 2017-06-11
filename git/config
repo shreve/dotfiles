@@ -11,15 +11,16 @@
   p = pull --prune
   release = checkout release
   rm-cached = "! git st | grep ' D' | cut -c 4- | xargs git rm --cached"
-  rm-new = "! git st | grep '??' | cut -c 4- | xargs rm"
+  rm-new = "! git st | grep '??' | cut -c 4- | xargs rm -rf"
   stpop = "! git stash apply stash@{$1}; git stash drop stash@{$1}"
   rb = rebase --committer-date-is-author-date
 [color]
+  diff = always
+  status = always
   branch = auto
-  diff = auto
   interactive = auto
-  status = auto
   ui = true
+  pager = true
 [commit]
   template = ~/.gitmessage
 [core]
@@ -27,6 +28,7 @@
   editor = emacs
   excludesfile = ~/.gitignore
   mergetool = emacs
+  pager = less -r
 [help]
 #  autocorrect = 1 # This actually sucks
 [init]

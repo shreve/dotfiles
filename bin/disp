@@ -2,60 +2,82 @@
 
 INTERNAL_INPUT="eDP1"
 
-function status_of() {
-    xrandr | grep "$1" | cut -d' ' -f2
+geometry_of() {
+    xrandr | grep "$1" | awk '{print $3}'
+}
+
+status_of() {
+    geometry=$(geometry_of $1)
+    case $geometry in
+        ''[0-9]*) echo "Displaying [$geometry]" ;;
+        *)        echo "Not active" ;;
+    esac
+}
+
+connected_screens() {
+    xrandr -q | grep " connected" | awk '{print $1}'
+}
+
+position_flag() {
+    case $1 in
+        --same-as|clone) echo "--same-as" ;;
+        --above|above)   echo "--above" ;;
+    esac
+}
+
+enable_screen() {
+    display=$1
+    mode=$(position_flag $2)
+    if [[ "$(status_of $display)" =~ Displaying* ]]; then
+        echo "$display is already active."
+        exit 1
+    elif [[ "$mode" = "" ]]; then
+        echo "$2 is not a valid position"
+        exit 1
+    else
+        echo "Connecting $display (using $mode)"
+        xrandr --output $INTERNAL_INPUT --auto --output $display --auto $mode $INTERNAL_INPUT
+    fi
+}
+
+disable_screen() {
+    display=$1
+    if [[ "$(status_of $display)" = "Not active" ]]; then
+        echo "$display is already off."
+        exit 1
+    else
+        echo "Disconnecting $1"
+        xrandr --output $INTERNAL_INPUT --auto --output $1 --off
+    fi
 }
 
 case "$1" in
     toggle)
         display=$2
-        case "$3" in
-            clone)
-                mode="--same-as"
-                ;;
-
-            above)
-                mode="--above"
-                ;;
-        esac
-
-        if [[ -z "$display" ]]; then
-            echo "Usage: disp toggle [display]"
+        mode=$(position_flag $3)
+        if [[ -z "$display" ]] || [[ -z "$mode" ]]; then
+            echo "Usage: disp toggle [display] [clone,above]"
         else
-            if [[ "$(status_of $2)" == "connected" ]]; then
-                echo "disconnecting $display"
-                xrandr --output $INTERNAL_INPUT --auto --output $display --off
+            if [[ "$(status_of $display)" == "Not active" ]]; then
+                enable_screen $display $mode
             else
-                echo "connecting $display"
-                xrandr --output $INTERNAL_INPUT --auto --output $display --auto $mode $INTERNAL_INPUT
+                disable_screen $display
             fi
         fi
         ;;
 
     on)
-        display=$2
-        case "$3" in
-            clone)
-                mode="--same-as"
-                ;;
+        enable_screen $2 $3
+        ;;
 
-            above)
-                mode="--above"
-                ;;
-        esac
-        echo "connecting $display"
-        xrandr --output $INTERNAL_INPUT --auto --output $display --auto $mode $INTERNAL_INPUT
-
-
+    off)
+        disable_screen $2
         ;;
 
     status | st)
-        echo "eDP1   $(status_of eDP1)"
-        echo "HDMI2  $(status_of HDMI2)"
-        ;;
-
-    start | stop | restart | cache | log )
-        $@
+        for screen in $(connected_screens); do
+            echo -ne "$screen \t $(status_of $screen)\n"
+        done
         ;;
 
     *)
@@ -65,5 +87,4 @@ case "$1" in
         echo "  toggle [disp]    turn a display on or off"
         echo ""
         ;;
-
 esac

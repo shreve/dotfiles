@@ -7,8 +7,32 @@
 interface=$(nmcli d | grep wifi | cut -d' ' -f1)
 config_dir=/etc/NetworkManager/system-connections
 
+# 1. When we encounter "encryption", set a lock icon if it's on.
+# 2. When we encounter "quality", get the numerator and denominator.
+# 3. When we get to the SSID:
+#    1. Don't print if it's a repeat or if the name is blank
+#    2. Strip the quotes off of the name
+#    3. Print our collected data
+list_script='
+{
+  if($1~/Encryption/){
+    if($2 == "on"){crypt="🔒"}else{crypt=" "}
+  }
+  if($1~/Quality/){split($2, quality, " "); split(quality[1], quality, "/")}
+  if($1~/ESSID/){
+    gsub(/[" ]/, "", $2);
+    if(!seen[$2]++ && $2 != "\"\""){
+      printf "[%.f%]  %s  %s\n", 100 * quality[1] / quality[2], crypt, $2
+    }
+  }
+}'
+
 list() {
-    sudo iwlist $interface scan | grep ESSID | cut -d'"' -f2 | sort | uniq
+    sudo iwlist $interface scan | \
+        awk -F"[:=]" "$list_script" | \
+        sort -r | \
+        grep '.' | \
+        xargs -0 echo -e
 }
 
 new() {
@@ -21,7 +45,7 @@ new() {
 }
 
 join() {
-    nmcli --ask c up "$@"
+    nmcli --ask -pretty c up "$@"
 }
 
 leave() {
@@ -37,7 +61,7 @@ password() {
 }
 
 current_network() {
-    nmcli c show --active | tail -1 | sed -e 's/  .*//g'
+    nmcli c show --active | grep $interface | sed -e 's/  .*//g'
 }
 
 update_i3blocks() {
@@ -65,7 +89,7 @@ without_vpn() {
 }
 
 case $1 in
-    list)
+    list|ls)
         list;
         ;;
 

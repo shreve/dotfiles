@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+# Resize image to be as close to 2650x1440 as possible
+# This is an aspect ratio of 16:9
+#
+resize() {
+    path=$1
+    info=$(identify $1)
+    size=$(echo $info | awk '{print $7}')
+    dimensions=$(echo $info | awk '{print $3}')
+    width=$(echo $dimensions | awk -F'x' '{print $1}')
+    height=$(echo $dimensions | awk -F'x' '{print $2}')
+    ratio=$(__ratio $width $height)
+
+    # Set some defaults. These will be overwritten as needed
+    new_height=$ideal_height
+    new_width=$ideal_width
+    top_offset=0
+    left_offset=0
+
+    if [[ $ratio -gt $ideal_ratio ]]; then
+
+        # If the aspect ratio of the input is larger than this value, it is
+        # too wide. We need to shrink the height to 1440 and crop the sides.
+        new_width=$(bc <<< "($new_height * $ideal_ratio) / $ratio_factor")
+        left_offset=$(bc -l "($new_width - $ideal_width) / 2")
+
+    elif [[ $ratio -lt $ideal_ratio ]]; then
+
+        # If the aspect ratio is less, it's too tall. We need to shrink the width to
+        # 2560 and crop the top and bottom to fit.
+        factor=$(bc -l <<< "$ratio / $ratio_factor")
+        new_height=$(bc <<< "$new_width / $factor")
+        top_offset=$(bc <<< "($new_height - $ideal_height) / 2")
+    fi
+
+    resize_geometry="${new_width}x${new_height}>"
+    crop_geometry="${ideal_width}x${ideal_height}+$left_offset+$top_offset"
+
+    echo -e "Resizing $path"
+
+    if (! [ $width -gt $ideal_width ]) || (! [ $height -gt $ideal_height ]); then
+        echo "  Image too small. Not resizing"
+        echo " "
+        return 0
+    fi
+
+    # Use the imagemagick convert tool to perform the resize.
+    echo "  convert $path -resize '$resize_geometry' $path"
+    convert $path -resize "$resize_geometry" $path
+
+    echo "  convert $path -crop '$crop_geometry' $path"
+    convert $path -crop "$crop_geometry" $path
+
+    echo " "
+}
+
+
+# Add this photo to the list based on path, and a simple name.
+# This will append an appropriate number
+add() {
+    filename=$(basename $1)
+
+    cp $path /tmp/$filename
+    resize /tmp/$filename
+    image_optim /tmp/$filename >/dev/null 2>&1
+    cp /tmp/$filename $wallpaper_location/$filename
+    rm $path
+    rm $1
+
+    echo "Successfully added $path"
+}
+
+# Change the wallpaper to be a random selection from the available pics
+update() {
+    read -r -a papers <<< $(ls $wallpaper_location | grep 'jpg\|png')
+    selected=""
+    while [ -z $selected ]; do
+        selected=${papers[$RANDOM % ${#papers[@]}]}
+    done
+
+    feh --bg-fill $wallpaper_location/$selected
+}
+
+watch() {
+    inotifywait -m -q -e create -r $1 | while read file; do
+        echo "Spotted new file ($file)"
+        sleep 1
+        if [[ $file == *"jpg" ]]; then
+            path=$(echo $file | awk '{print $3}')
+            echo $path
+            add $path
+        fi
+    done
+}
+
+# Calculate the ratio of two numbers. This returns an int, which is 1000 times
+# larger than one would expect of a percentage.
+# I did it this way, because the main comparison number is $ideal_ratio, which
+# is actually equal to 1.7777777777777777777777777, but bash doesn't like that.
+__ratio() {
+    bc <<< "($ratio_factor * $1) / $2"
+}
+
+
+ratio_factor=1000
+ideal_width=2560
+ideal_height=1440
+ideal_ratio=$(__ratio $ideal_width $ideal_height)
+
+wallpaper_location=/home/jacob/Pictures/wallpapers
+
+
+case $1 in
+    resize)
+        shift
+
+        for path in $@; do
+            resize $path
+        done
+        ;;
+
+    add)
+        shift
+
+        for path in $@; do
+            add $path
+        done
+        ;;
+
+    update|change)
+        update
+        ;;
+
+    watch)
+        watch ${2:-$(pwd)}
+        ;;
+esac

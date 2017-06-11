@@ -12,6 +12,8 @@ link() {
   sudo ln -s $P/$1 $2
 }
 
+link bin ~/bin
+
 mkdir -p ~/.config/dunst
 link dunstrc ~/.config/dunst/dunstrc
 

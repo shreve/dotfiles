@@ -12,19 +12,18 @@ xset r rate 250 60
 xrandr --dpi 200
 
 # Set wallpaper
-feh --bg-scale /home/jacob/Pictures/wallpaper.jpg
+/home/jacob/.fehbg &
 
 # Enable flux to run in the background
 fluxgui &
 
-# Start Enpass and kill the window that pops up
-/opt/Enpass/bin/runenpass.sh &
-sleep 0.5 ; i3-msg kill >/dev/null
+# Start Enpass
+/home/jacob/bin/enpass
 
 exec gnome-settings-daemon >/dev/null 2>&1 &
 
 exec xscreensaver -no-splash >/dev/null 2>&1 &
-exec /home/jacob/code/dotfiles/bin/keylight watch-screen >/dev/null 2>&1 &
+exec /home/jacob/bin/keylight watch-screen >/dev/null 2>&1 &
 exec brightside &
 
 i3-msg restart

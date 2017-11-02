@@ -16,10 +16,11 @@
 #                                  `-.___,-'
 
 set EDITOR emacs
-set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin $PATH
+set -x GOPATH ~/code/go
+set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin ~/.cargo/bin $GOPATH/bin $PATH
 set CDPATH ./ ~/ ~/code ~/Documents/School
 
-source ~/.config/fish/conf.d/omf.fish >/dev/null
+eval (direnv hook fish)
 
 status --is-interactive; and source (rbenv init -|psub)
 
@@ -32,6 +33,8 @@ alias c "clear"
 function compress
   tar czfv $argv.tar.gz $argv
 end
+
+alias copy "xsel -i --clipboard"
 
 function cppp
   g++ -Wall -Werror -pedantic -g $argv.cpp -p $argv
@@ -64,6 +67,29 @@ function fishrc
   source ~/.config/fish/config.fish
 end
 
+function fish_mode_prompt --description 'Displays the current vi mode'
+  if test "$fish_key_bindings" = "fish_vi_key_bindings"
+    switch $fish_bind_mode
+      case default
+        set_color --bold yellow
+        echo 'N'
+      case insert
+        set_color --bold green
+        echo 'I'
+      case replace-one
+        set_color --bold green
+        echo 'R'
+      case visual
+        set_color --bold magenta
+        echo 'V'
+    end
+    set_color normal
+    echo -n ' '
+  end
+end
+
+fish_vi_key_bindings
+
 # Print a list of the most commonly used commands in history, grouped by the
 # first 2 terms, rather than first 1.
 # Accepts count, defaults to 10
@@ -74,7 +100,9 @@ function hist
   | head -$argv
 end
 
-alias hosts "sudo emacs /etc/hosts &"
+function hosts
+  sudo emacs /etc/hosts &
+end
 
 function keep-doing
   set -l sucesses 0 33
@@ -102,11 +130,17 @@ function pgr
   psql (heroku config:get DATABASE_URL $app)
 end
 
-alias portsnipe "netstat -tulpn | grep $argv | sed -e 's/^.*LISTEN\s\+\([^\/]\+\).*/\1/'"
+function portsnipe
+  netstat -tulpn | grep $argv | sed -e 's/^.*LISTEN\s\+\([^\/]\+\).*/\1/'
+end
 
 function rusty
   rustc $argv.rs
   ./$argv
+end
+
+function save_path --on-event fish_prompt
+  echo $PWD > ~/.cache/pwd
 end
 
 alias search "find . -type f -name"
@@ -117,6 +151,10 @@ end
 
 function settings
   spawn env XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+end
+
+function shrug
+  echo -n "¯\\_(ツ)_/¯" | tee /dev/stderr | copy
 end
 
 function size
@@ -161,6 +199,30 @@ function trello_title_gsub
       awk -F ';;;' '{print "http PUT \"https://api.trello.com/1/cards" $1 "?key=$TRELLO_DEVELOPER_PUBLIC_KEY&token=$TRELLO_MEMBER_TOKEN&name=" $2 "\"" }' | \
       fish
   end
+end
+
+function upgrade
+  echo "sudo apt update"
+  sudo apt update 2>&1 > /dev/null
+
+  echo "sudo apt list --upgradable"
+  sudo apt list --upgradable
+
+  read -l -p __prompt cont
+
+  switch $cont
+    case y Y
+
+      echo "sudo apt upgrade"
+      sudo apt upgrade
+  end
+
+  echo "sudo apt autoremove"
+  sudo apt autoremove
+end
+
+function __prompt
+  echo 'Download updates? [y/n] '
 end
 
 alias ytmp3 "youtube-dl -x --audio-format mp3"

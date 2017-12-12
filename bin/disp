@@ -2,6 +2,14 @@
 
 INTERNAL_INPUT="eDP1"
 
+# export DISPLAY=:0
+# export XAUTHORITY=/home/jacob/.Xauthority
+
+log() {
+    echo "$@"
+    echo "$@" >> /tmp/disp.log
+}
+
 geometry_of() {
     xrandr | grep "$1" | awk '{print $3}'
 }
@@ -29,26 +37,42 @@ enable_screen() {
     display=$1
     mode=$(position_flag $2)
     if [[ "$(status_of $display)" =~ Displaying* ]]; then
-        echo "$display is already active."
+        log "$display is already active."
         exit 1
     elif [[ "$mode" = "" ]]; then
-        echo "$2 is not a valid position"
+        log "$2 is not a valid position"
         exit 1
     else
-        echo "Connecting $display (using $mode)"
+        log "Connecting $display (using $mode)"
         xrandr --output $INTERNAL_INPUT --auto --output $display --auto $mode $INTERNAL_INPUT
     fi
 }
 
 disable_screen() {
     display=$1
-    if [[ "$(status_of $display)" = "Not active" ]]; then
-        echo "$display is already off."
-        exit 1
-    else
-        echo "Disconnecting $1"
+    # if [[ "$(status_of $display)" = "Not active" ]]; then
+    #     echo "$display is already off."
+    #     exit 1
+    # else
+        log "Disconnecting $1"
         xrandr --output $INTERNAL_INPUT --auto --output $1 --off
-    fi
+        log "xrandr --output $INTERNAL_INPUT --auto --output $1 --off"
+        log "$?"
+    # fi
+}
+
+copy_workspaces() {
+    source=$1
+    dest=$2
+    log "Copying workspaces from $source to $dest"
+    current_workspace=$(i3-msg -t get_outputs | jq -r ".[] | select(.name == \"$dest\") | .current_workspace")
+    workspaces_to_move=$(i3-msg -t get_workspaces | jq -r ".[] | select(.output == \"$source\") | .name")
+    for ws in $workspaces_to_move
+    do
+        i3-msg workspace $ws > /dev/null
+        i3-msg move workspace to output $dest > /dev/null
+    done
+    i3-msg workspace $current_workspace > /dev/null
 }
 
 case "$1" in
@@ -56,13 +80,15 @@ case "$1" in
         display=$2
         mode=$(position_flag $3)
         if [[ -z "$display" ]] || [[ -z "$mode" ]]; then
-            echo "Usage: disp toggle [display] [clone,above]"
+            log "Usage: disp toggle [display] [clone,above]"
         else
             if [[ "$(status_of $display)" == "Not active" ]]; then
                 enable_screen $display $mode
+                copy_workspaces $INTERNAL_INPUT $display
             else
                 disable_screen $display
             fi
+            [[ -a ~/.fehbg ]] && ~/.fehbg
         fi
         ;;
 
@@ -78,6 +104,20 @@ case "$1" in
         for screen in $(connected_screens); do
             echo -ne "$screen \t $(status_of $screen)\n"
         done
+        ;;
+
+    update)
+        # Make xrandr match what's real
+        # i.e. plug the monitor in, it's active, turn it on in xrandr
+        #      unplug the monitor, it's not active, turn it off
+        display="HDMI2"
+        mode="above"
+        if [[ "$(status_of $display)" == "Not active" ]]; then
+            disable_screen $display
+        else
+            enable_screen $display $mode
+            copy_workspaces $INTERNAL_INPUT $display
+        fi
         ;;
 
     *)

@@ -113,8 +113,8 @@ backlight_change() {
 }
 
 watch_for_screen_changes() {
-    if ! pgrep -f "xscreensaver-command -watch" > /dev/null; then
-        nohup xscreensaver-command -watch | __watch_loop 2>&1 &
+    if ! pgrep -f "dpmswatch" >/dev/null; then
+        dpmswatch -n "keylight resume" -f "keylight off" 2&>1 >/dev/null &
     fi
 }
 

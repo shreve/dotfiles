@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+usage=$(df -B M ${BLOCK_INSTANCE:-$1} | tail -1 | awk '{print $3/1}')
+usage=$(echo "scale=1; $usage/1024" | bc -l)
+echo "$usage Gb"

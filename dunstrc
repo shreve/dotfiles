@@ -5,10 +5,10 @@
     browser = /usr/bin/google-chrome
     dmenu = /usr/bin/dmenu -p dunst:
     follow = none
-    font = Fira Sans 14
+    font = Fira Sans 12
     format = "<b>%s</b>\n%b"
     # geometry [{width}]x{height}][+/-{x}+/-{y}]
-    geometry = "400x5-30+20"
+    geometry = "400x5-30+90"
     history_length = 20
     horizontal_padding = 8
     idle_threshold = 120

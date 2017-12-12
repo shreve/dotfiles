@@ -42,16 +42,16 @@ city() {
     all_data | grep city | awk '{$1=""; print $0}' | sed 's/^\s\+//'
 }
 
-status () {
-    all_data | grep summary | awk -F "\"" '{ print $4 }'
-}
+# status () {
+#     all_data | grep summary | awk -F "\"" '{ print $4 }'
+# }
 
-temp () {
-    all_data | grep temperature | awk '{ print $3 }' | sed 's/,//'
-}
+# temp () {
+#     all_data | grep temperature | awk '{ print $3 }' | sed 's/,//'
+# }
 
 apparent_temp () {
-    all_data | grep apparent | awk '{ print $3 }' | sed 's/,//'
+    all_data | grep apparent | awk '{ print $3 }' | sed 's/\..*//'
 }
 
 coords () {
@@ -71,6 +71,6 @@ case "$1" in
         ;;
 
     *)
-        echo "$(city) :: $(status) :: $(temp)/$(apparent_temp)°F"
+        echo "$(city) $(apparent_temp)°F"
         ;;
 esac

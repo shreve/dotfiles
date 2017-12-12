@@ -1,0 +1,18 @@
+
+! Remap Lock to Control_L
+! Remap Shift+Lock to Lock
+clear Lock
+clear Control
+keycode 66 = Control_L Caps_Lock NoSymbol NoSymbol
+add control = Caps_Lock Control_L Control_R
+
+! Swap Alt_L and Windows key
+clear Mod1
+clear Mod4
+
+add mod1 = Super_L Super_R
+add mod4 = Alt_L Alt_R
+
+keycode 133 = Alt_L
+keycode 108 = Alt_R
+keycode 64 = Super_L Super_R

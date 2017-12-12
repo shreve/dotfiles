@@ -1,15 +1,26 @@
 #!/bin/bash
 
-# Remap caps lock to a left control key
-xmodmap -e "clear lock"
-xmodmap -e "keycode 66 = Control_L"
-xmodmap -e "add control = Control_L"
+# Load xmodmap settings
+[[ -f ~/.Xmodmap ]] && xmodmap ~/.Xmodmap
 
 # Set keyboard repeat rate
 xset r rate 250 60
 
+# Turn off screen after 2 minutes of inactivity
+xset s 60 60
+xset +dpms
+xset dpms 60 60 60
+
+# Set mouse speed
+xinput --set-prop 11 'libinput Accel Speed' 0.5
+
+# Natural scrolling
+synclient VertScrollDelta=-114
+synclient HorizScrollDelta=-114
+synclient HorizTwoFingerScroll=1
+
 # Set display resolution
-xrandr --dpi 200
+xrandr --dpi 100
 
 # Set wallpaper
 /home/jacob/.fehbg &
@@ -20,10 +31,10 @@ fluxgui &
 # Start Enpass
 /home/jacob/bin/enpass
 
-exec gnome-settings-daemon >/dev/null 2>&1 &
+# Start XSS-lock to lock the screen when it turns off
+/home/jacob/bin/lock watch
 
-exec xscreensaver -no-splash >/dev/null 2>&1 &
-exec /home/jacob/bin/keylight watch-screen >/dev/null 2>&1 &
-exec brightside &
+# Start dpmswatch to turn the keylights off/on with screen
+/home/jacob/bin/keylight watch-screen
 
 i3-msg restart

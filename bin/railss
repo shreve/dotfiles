@@ -8,7 +8,7 @@ function start {
     if [[ "$PID" -eq "" ]]
     then
         touch $LOG_FILE
-        if __no_puma__; then
+        if ! grep puma Gemfile >/dev/null; then
             puma -b unix://$SOCK_PATH > $LOG_FILE &
         else
             bundle exec puma -b unix://$SOCK_PATH > $LOG_FILE &
@@ -80,8 +80,9 @@ function __domain__ {
     echo "http://${sock%.*}.dev";
 }
 
-function __no_puma__ {
-    return $(grep puma Gemfile | wc -l)
+function __puma__ {
+    echo "Checking for puma"
+    grep puma Gemfile >/dev/null
 }
 
 function __puma_pid__ {

@@ -2,13 +2,15 @@
 
 # $indent = 0
 
+require 'pp'
+
 def focused_window(nodes)
   return false unless nodes.respond_to?(:each)
   # puts "#{$indent.times { print '  '} }Searching through #{nodes.count} nodes: #{nodes.class.name}"
   # $indent += 1
   nodes.each do |node|
     # puts "#{$indent.times { print '  ' }}Node: #{node['focused']} #{node['geometry']}"
-    returned_node = focused_window(node['nodes'])
+    returned_node = focused_window(node['nodes']) || focused_window(node['floating_nodes'])
     return returned_node if returned_node
     return node if node['focused']
   end
@@ -20,6 +22,8 @@ require 'json'
 data = JSON.parse(`i3-msg -t get_tree`)
 data = focused_window(data['nodes'])
 attr = ARGV.first || 'id'
+
+exit(1) if attr == false
 
 if attr == 'all'
   puts JSON.dump(data)

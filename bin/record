@@ -2,24 +2,45 @@
 
 require 'json'
 
-case ARGV[0]
-when 'current'
-  rect = `current_window rect`
-  rect = JSON.parse(rect)
-  x, y, width, height = rect.values
-  y += 3
-  height -= 3
-  width -= 3
-  duration = ARGV[1] || 10
-  filename = Time.now.strftime "%Y-%m-%d--%H-%M-%S--#{width}x#{height}--#{duration}s.gif"
-  filename = File.expand_path("~/Pictures/screenshots/#{filename}")
+Rect = Struct.new(:x, :y, :width, :height)
+selection = Rect.new
+
+def filename(rect, duration)
+  time = Time.now.strftime '%Y-%m-%d--%H-%M-%S'
+  path = "#{time}--#{rect.width}x#{rect.height}--#{duration}s.gif"
+  File.expand_path("~/Pictures/screenshots/#{path}")
+end
+
+def record(rect, duration)
+  duration ||= 10
+
+  puts 'Starting recording in 2 seconds'
   cmd = "byzanz-record --duration=#{duration} --delay=2 " \
-        "-x #{x} -y #{y} " \
-        "-w #{width} -h #{height} #{filename}"
+        "-x #{rect.x} -y #{rect.y} " \
+        "-w #{rect.width} -h #{rect.height} #{filename(rect, duration)}"
   puts cmd
   fork do
-    puts "\033c"
+    # puts "\033c"
     `#{cmd}`
     `notify-send "Recording Complete"`
   end
 end
+
+case ARGV[0]
+when 'current'
+  sleep 2
+  rect = `current_window rect`
+  rect = JSON.parse(rect)
+  selection.x, selection.y, selection.width, selection.height = rect.values
+  selection.y += 3
+  selection.height -= 3
+  selection.width -= 3
+when 'select'
+  rect = `rect_select`.strip
+  size, selection.x, selection.y = rect.split('+')
+  selection.width, selection.height = size.split('x')
+else
+  exit(1)
+end
+
+record(selection, ARGV[1])

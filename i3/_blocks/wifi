@@ -18,24 +18,25 @@ if [[ "$(cat /sys/class/net/$INTERFACE/operstate)" = 'down' ]]; then
 fi
 
 QUALITY=$(grep $INTERFACE /proc/net/wireless | awk '{ print int($3 * 100 / 70) }')
-SSID=$(iwgetid -r)
+SSID=$(iwgetid -r | sed 's/&/&amp;/')
 #ADDR=$(hostname -I)
 
+color () {
+    local p=$1
+    if [ "$p" -gt "50" ]; then
+        local red=$(bc -l <<< "255 * 2 * (1 - ($p/100))")
+        local green=255
+    else
+        local red=255
+        local green=$(bc -l <<< "255 * 2 * ($p/100)")
+    fi
+    echo "#$(/home/jacob/code/dotfiles/bin/num2hex $red $green 0)"
+}
+
+echo -n "$(colorize '#00ff00' "  $SSID") $(colorize $(color $QUALITY) $QUALITY%)"
+
 if nmcli c | grep vpn | grep wlp4s0 >/dev/null; then
-    VPN=$(colorize '#00FF00' 'ON')
-else
-    VPN=$(colorize '#FF0000' 'OFF')
+    echo -n $(colorize '#00FF00' ' VPN')
+# else
+#     VPN=$(colorize '#FF0000' 'OFF')
 fi
-
-# color
-if [[ $QUALITY -ge 80 ]]; then
-    color="#00FF00"
-elif [[ $QUALITY -ge 60 ]]; then
-    color="#FFF600"
-elif [[ $QUALITY -ge 40 ]]; then
-    color="#FFAE00"
-else
-    color="#FF0000"
-fi
-
-echo "$(colorize '#00ff00' "  $SSID") [$VPN][$(colorize $color $QUALITY%)]"

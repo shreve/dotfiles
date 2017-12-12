@@ -15,7 +15,7 @@ stop() {
 
 close_window() {
     n=0
-    until [ $n -gt 25 ]; do
+    until [ $n -gt 200 ]; do
         i3-msg '[title="Enpass"] kill' >/dev/null
         n=$[$n+1]
         sleep 0.01

@@ -6,6 +6,7 @@
 
 interface=$(nmcli d | grep wifi | cut -d' ' -f1)
 config_dir=/etc/NetworkManager/system-connections
+dialup_sound=~/Downloads/dialup.mp3
 
 # 1. When we encounter "encryption", set a lock icon if it's on.
 # 2. When we encounter "quality", get the numerator and denominator.
@@ -16,12 +17,12 @@ config_dir=/etc/NetworkManager/system-connections
 list_script='
 {
   if($1~/Encryption/){
-    if($2 == "on"){crypt="🔒"}else{crypt=" "}
+    if($2 == "on"){crypt="🔒"}else{crypt="  "}
   }
   if($1~/Quality/){split($2, quality, " "); split(quality[1], quality, "/")}
   if($1~/ESSID/){
-    gsub(/[" ]/, "", $2);
-    if(!seen[$2]++ && $2 != "\"\""){
+    gsub(/["]/, "", $2);
+    if(!seen[$2]++ && $2 != ""){
       printf "[%.f%]  %s  %s\n", 100 * quality[1] / quality[2], crypt, $2
     }
   }
@@ -32,7 +33,8 @@ list() {
         awk -F"[:=]" "$list_script" | \
         sort -r | \
         grep '.' | \
-        xargs -0 echo -e
+        xargs -0 echo -e | \
+        head -n -1
 }
 
 new() {
@@ -45,7 +47,11 @@ new() {
 }
 
 join() {
+    cvlc $dialup_sound >/dev/null 2>&1 &
+    pid=$!
+    sleep 1
     nmcli --ask -pretty c up "$@"
+    kill $pid
 }
 
 leave() {
@@ -108,7 +114,7 @@ case $1 in
         ;;
 
     status|st)
-        nmcli c;
+        nmcli c
         ;;
 
     remove|rm)

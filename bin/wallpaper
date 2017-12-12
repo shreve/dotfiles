@@ -59,6 +59,7 @@ resize() {
 # Add this photo to the list based on path, and a simple name.
 # This will append an appropriate number
 add() {
+    echo "Adding $1"
     filename=$(basename $1)
 
     cp $path /tmp/$filename
@@ -73,13 +74,10 @@ add() {
 
 # Change the wallpaper to be a random selection from the available pics
 update() {
-    read -r -a papers <<< $(ls $wallpaper_location | grep 'jpg\|png')
-    selected=""
-    while [ -z $selected ]; do
-        selected=${papers[$RANDOM % ${#papers[@]}]}
-    done
-
+    selected=$(ls $wallpaper_location | sort -R | head -1)
     feh --bg-fill $wallpaper_location/$selected
+
+    convert -blur 8x8 $wallpaper_location/$selected $lockscreen &
 }
 
 watch() {
@@ -88,8 +86,7 @@ watch() {
         sleep 1
         if [[ $file == *"jpg" ]]; then
             path=$(echo $file | awk '{print $3}')
-            echo $path
-            add $path
+            add $1/$path
         fi
     done
 }
@@ -109,6 +106,7 @@ ideal_height=1440
 ideal_ratio=$(__ratio $ideal_width $ideal_height)
 
 wallpaper_location=/home/jacob/Pictures/wallpapers
+lockscreen=/home/jacob/Pictures/lockscreen.png
 
 
 case $1 in
@@ -134,5 +132,10 @@ case $1 in
 
     watch)
         watch ${2:-$(pwd)}
+        ;;
+
+
+    list)
+        ls $wallpaper_location
         ;;
 esac

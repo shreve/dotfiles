@@ -17,8 +17,10 @@
 
 set EDITOR emacs
 set -x GOPATH ~/code/go
-set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin ~/.cargo/bin $GOPATH/bin $PATH
+set NPMPATH node_modules/.bin
+set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin ~/.cargo/bin $GOPATH/bin $NPMPATH $PATH
 set CDPATH ./ ~/ ~/code ~/Documents/School
+set -x GPG_TTY (tty)
 
 eval (direnv hook fish)
 
@@ -48,6 +50,11 @@ end
 # -O maintains the file name from the URL
 function download
   keep-doing curl -O -C - $argv
+end
+
+function draw_separator --on-event fish_prompt
+  set_color 333
+  printf "\n%*s" (tput cols) | sed -e 's/ /\—/g'
 end
 
 function emacs-bg
@@ -112,6 +119,8 @@ function keep-doing
   end
 end
 
+alias ls exa
+
 # Force kill with a more effective search
 function massacre
   ps aux | grep -i $argv[1] | awk '{print $2}' | xargs kill -9
@@ -131,7 +140,9 @@ function pgr
 end
 
 function portsnipe
-  netstat -tulpn | grep $argv | sed -e 's/^.*LISTEN\s\+\([^\/]\+\).*/\1/'
+  set pid (netstat -tulpn 2>/dev/null | grep $argv | sed -e 's/^.*LISTEN\s\+\([^\/]\+\).*/\1/')
+  set pname (ps $pid | tail -1 | cut -c 28-)
+  echo $pid $pname
 end
 
 function rusty
@@ -180,6 +191,10 @@ function sudo
   else
     command sudo $argv
   end
+end
+
+function tags
+  fd -I -tf \.rb | etags - &
 end
 
 # Find and replace in card titles across all boards
@@ -247,3 +262,8 @@ function __bind_keys
   bind \cb "__run_with_prefix bx"
 end
 __bind_keys
+
+
+function fish_user_key_bindings
+  fzf_key_bindings
+end

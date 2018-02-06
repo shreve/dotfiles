@@ -47,24 +47,3 @@ link psqlrc.sql ~/.psqlrc
 link xinitrc ~/.xinitrc
 
 link bin/keylight /etc/pm/sleep.d/10keylight
-
-packages=(
-    "brightside"
-    "cmus"
-    "emacs"
-    "feh"
-    "fish"
-    "htop"
-    "i3"
-    "i3blocks"
-    "nginx"
-    "postgresql"
-    "powertop"
-    "slack-desktop"
-    "texlive-full"
-    "tlp"
-    "xbacklight"
-    "xscreensaver"
-)
-
-sudo apt install "${packages[@]}"

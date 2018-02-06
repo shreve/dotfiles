@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+journaldir=~/Documents/journal
+date=today
+
+datestring() {
+    usedate=${1:-date}
+    date --date="$usedate" '+%A, %b %d, %Y'
+}
+
+filename() {
+    echo "$journaldir/$(date --date="$date" '+%Y-%m-%d').md"
+}
+
+list() {
+    emacs $journaldir
+}
+
+date_header() {
+    title=$(datestring)
+    line=${title//[a-zA-Z0-9 ,]/=}
+    echo -e "$title\n$line\n\n"
+}
+
+edit() {
+    file="$(filename)"
+
+    if [ ! -f "$file" ]; then
+        date_header > "$file"
+    fi
+
+    emacs "$file"
+}
+
+# Examine the argument presented for values that indicate we want to edit the
+# entry for a different date.
+check_for_date_mods() {
+    case "$1" in
+        yesterday)
+            date=yesterday
+            ;;
+    esac
+}
+
+# If this command was run pretty late (or technically very early), ask the user
+# if they meant to enter the previous date.
+check_for_late_entries() {
+    if [[ "$(date '+%_H')" -lt "4" ]] && [[ "$date" != "yesterday" ]]; then
+        prompt="It's tomorrow morning already. Journal for yesterday?"
+        prompt+="($(datestring yesterday)) [y/n] "
+        read -p "$prompt" -r choice
+        case "$choice" in
+            [yY]) date=yesterday ;;
+        esac
+    fi
+}
+
+word_count() {
+    tail --silent -n +3 $journaldir/* | wc -w
+}
+
+case "$1" in
+
+    list)
+        list
+        ;;
+
+    words)
+        word_count
+        ;;
+
+    *)
+        check_for_date_mods "$1"
+        check_for_late_entries
+        edit
+        ;;
+
+esac

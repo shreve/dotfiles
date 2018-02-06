@@ -58,7 +58,7 @@ for_range() {
 charge_formula="$(prop energy_now) / $(prop energy_full) * 100"
 charge=$(within_range 0 100 $(bc -l <<< $charge_formula | sed -e 's/\..*//'))
 
-remaining=$(acpi | awk '{printf $5}' | cut -d':' -f 1-2)
+remaining=$(acpi | awk '{printf $5}' | cut -d':' -f 1-2 | sed 's/^0//')
 power=$(printf "%.1f" $(bc -l <<< "$(prop power_now) / 1000000"))
 
 # The power percentage is the value of the current rate as a percentage of the
@@ -88,4 +88,4 @@ fi
 charge=$(colorize "$charge_color" "$icon  $charge%")
 power=$(colorize $power_color "$power W")
 
-echo "$charge [$remaining][$power]"
+echo "$charge $remaining $power"

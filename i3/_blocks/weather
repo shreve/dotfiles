@@ -1,76 +1,11 @@
 #!/usr/bin/env bash
 
+source /home/jacob/bin/_util
+
 case $BLOCK_BUTTON in
     1)
         xdg-open "https://darksky.net" >/dev/null
         ;;
 esac
 
-cache=~/.cache/weather
-key=$(cat ~/.config/darksky.key)
-url="https://api.darksky.net/forecast/$key"
-params="?exclude=alerts,flags,daily,hourly,minutely"
-
-cache_invalid() {
-    # The cache is invalid if it's older than 10 minutes.
-    # -mmin -10 searches for files last modified less than 10 minutes ago,
-    # so if $valid_caches is 0, the cache is invalid.
-    valid_caches=$(find $cache -mmin -10 | wc -l)
-    city=$(cat $cache | grep city)
-
-    test $valid_caches = "0" || test -z "$city"
-}
-
-all_data () {
-    if cache_invalid; then
-        # Update the cache
-        /home/jacob/code/dotfiles/bin/wifi without_vpn $0 force_update
-    fi
-    cat $cache;
-}
-
-update_cache() {
-    location=$(/home/jacob/code/dotfiles/bin/location)
-    data=$(curl -s -N "$url/$(coords)$params")
-    if [ "$?" = "0" ]; then
-        echo $data | json_pp > $cache;
-        echo "$location" >> $cache;
-    fi
-}
-
-city() {
-    all_data | grep city | awk '{$1=""; print $0}' | sed 's/^\s\+//'
-}
-
-# status () {
-#     all_data | grep summary | awk -F "\"" '{ print $4 }'
-# }
-
-# temp () {
-#     all_data | grep temperature | awk '{ print $3 }' | sed 's/,//'
-# }
-
-apparent_temp () {
-    all_data | grep apparent | awk '{ print $3 }' | sed 's/\..*//'
-}
-
-coords () {
-    lat=$(echo "$location" | grep latitude | awk '{print $2}')
-    lng=$(echo "$location" | grep longitude | awk '{print $2}')
-    echo "$lat,$lng"
-}
-
-case "$1" in
-
-    update)
-        touch --date=2000-01-01 $cache
-        ;;
-
-    force_update)
-        update_cache
-        ;;
-
-    *)
-        echo "$(city) $(apparent_temp)°F"
-        ;;
-esac
+echo -n "$(pango_color "computer warrior" "$(/home/jacob/bin/weather line)")"

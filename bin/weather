@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+cache=~/.cache/weather
+key=$(cat ~/.config/darksky.key)
+url="https://api.darksky.net/forecast/$key"
+params="?exclude=alerts,flags,daily,hourly,minutely&units=us"
+
+cache_invalid() {
+    # The cache is invalid if it's older than 10 minutes.
+    # -mmin -10 searches for files last modified less than 10 minutes ago,
+    # so if $valid_caches is 0, the cache is invalid.
+    valid_caches=$(find $cache -mmin -10 | wc -l)
+    city=$(cat $cache | grep city)
+
+    test $valid_caches = "0" || test -z "$city"
+}
+
+all_data () {
+    if cache_invalid; then
+        # Update the cache
+        /home/jacob/code/dotfiles/bin/wifi without_vpn $0 force_update
+    fi
+    cat $cache;
+}
+
+update_cache() {
+    location=$(/home/jacob/code/dotfiles/bin/location)
+    data=$(curl -s -N "$url/$(coords)$params")
+    if [ "$?" = "0" ]; then
+        echo $data | json_pp > $cache;
+        echo "$location" >> $cache;
+    fi
+}
+
+city() {
+    all_data | grep city | awk '{$1=""; print $0}' | sed 's/^\s\+//'
+}
+
+state() {
+    all_data | grep state | awk '{$1=""; print $0}' | sed 's/^\s\+//'
+}
+
+status () {
+    all_data | grep summary | awk -F "\"" '{ print $4 }'
+}
+
+temp () {
+    all_data | grep temperature | awk '{ print $3 }' | sed 's/,//'
+}
+
+apparent_temp () {
+    all_data | grep apparent | awk '{ print $3 }' | sed 's/\..*//'
+}
+
+coords () {
+    lat=$(echo "$location" | grep latitude | awk '{print $2}')
+    lng=$(echo "$location" | grep longitude | awk '{print $2}')
+    echo "$lat,$lng"
+}
+
+wind_speed() {
+    all_data | grep windSpeed | awk -F "\"" '{ print $3 }' | sed 's/[^0-9.]//g'
+}
+
+icon_name() {
+    all_data | grep icon | awk -F "\"" '{ print $4 }'
+}
+
+icon() {
+    case "$(icon_name)" in
+        "cloudy"|"partly-cloudy-day") echo "" ;;
+        "clear-day")                  echo "" ;;
+        "clear-night")                echo "" ;;
+        "rain"|"sleet")               echo "" ;;
+        "snow")                       echo "" ;;
+        "partly-cloudy-night")        echo "" ;;
+        *) status ;;
+    esac
+}
+
+case "$1" in
+
+    update)
+        touch --date=2000-01-01 $cache
+        ;;
+
+    force_update)
+        update_cache
+        ;;
+
+    raw)
+        all_data
+        ;;
+
+    line)
+        echo -en "$(city) $(apparent_temp)°F $(icon)"
+        ;;
+
+    *)
+        echo -en "$(city), $(state)\n" \
+             "$(icon)  $(status)\n" \
+             "Real $(temp)°F / Feel $(apparent_temp)°F \n" \
+             "Wind $(wind_speed) mph";
+        ;;
+esac

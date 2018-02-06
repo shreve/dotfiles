@@ -16,8 +16,10 @@ def record(rect, duration)
 
   puts 'Starting recording in 2 seconds'
   cmd = "byzanz-record --duration=#{duration} --delay=2 " \
-        "-x #{rect.x} -y #{rect.y} " \
-        "-w #{rect.width} -h #{rect.height} #{filename(rect, duration)}"
+        "-x #{rect.x} -y #{rect.y} "
+  cmd << "-w #{rect.width} " if rect.width
+  cmd << "-h #{rect.height} " if rect.height
+  cmd << filename(rect, duration)
   puts cmd
   fork do
     # puts "\033c"
@@ -39,6 +41,8 @@ when 'select'
   rect = `rect_select`.strip
   size, selection.x, selection.y = rect.split('+')
   selection.width, selection.height = size.split('x')
+when 'all'
+  selection.x = selection.y = 0
 else
   exit(1)
 end

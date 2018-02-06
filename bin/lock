@@ -2,13 +2,27 @@
 
 export DISPLAY=:0
 
+at_home() {
+    # Check to see if my home network is connected with an IPV4 address
+    nmcli c show home | grep IP4.ADDRESS >/dev/null
+}
+
+perform_lock() {
+    i3lock --image=/home/jacob/Pictures/lockscreen.png \
+           --nofork --pointer=default --ignore-empty-password \
+           --show-failed-attempts
+}
+
 case $1 in
     watch)
-        xss-lock -- "$0" >/dev/null &
+        pkill xss-lock
+        xss-lock -- "$0" --safe-at-home >/dev/null &
         ;;
 
     *)
-        i3lock --image=/home/jacob/Pictures/lockscreen.png \
-               --nofork --pointer=default --ignore-empty-password --show-failed-attempts
+        if  at_home && [[ "$*" == *"--safe-at-home"* ]]; then
+            exit 0;
+        fi
+        perform_lock
         ;;
 esac

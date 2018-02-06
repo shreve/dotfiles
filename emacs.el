@@ -2,18 +2,38 @@
 ;;; Commentary:
 ;;; Code:
 (require 'package)
-(push '("marmalade" . "http://marmalade-repo.org/packages/")
-      package-archives )
-(push '("melpa" . "http://melpa.milkbox.net/packages/")
-      package-archives)
+(add-to-list 'package-archives
+             '("marmalade" . "http://marmalade-repo.org/packages/") t)
+(add-to-list 'package-archives
+             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 (package-initialize)
+
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+
+;; 3rd party config
+(add-to-list 'load-path "~/.emacs.d/theme")
+(add-to-list 'load-path "~/.emacs.d/vendor")
+
+(require 'whitespace)
+(require 'evil)
+(require 'evil-leader)
+(require 'grizzl)
+(require 'tomorrow-night-bright-theme)
+(require 'flycheck)
+(require 'sass-mode)
+(require 'web-mode)
+(require 'yaml-mode)
+(require 'ruby-text-objects)
+(require 'crystal-mode)
+(require 'jade-mode)
+;; (require 'linum-whitespace-mode)
 
 ;; General Config
 (setenv "PATH" (concat  "~/.emacs.d/bin:" (getenv "PATH")))
 (setq exec-path (append exec-path '("~/.emacs.d/bin")))
+(setq exec-path (append exec-path '("~/.yarn/bin")))
 (setq scroll-step 1)
-(defvar linum-format)
-(setq linum-format "%4d \u2502 ")
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 2)
 (setq inhibit-splash-screen t)
@@ -22,21 +42,35 @@
 (toggle-scroll-bar -1)
 (show-paren-mode 1) ;; show matching parens
 (setq tab-stop-list (number-sequence 2 60 2)) ;; generate a list from 2-60 by 2s
-(add-hook 'find-file-hook (lambda () (linum-mode 1)))
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-(setq flycheck-status-emoji-mode t)
-;; Update the modeline bar
-(set-fontset-font t nil "Symbola")
-(setq-default mode-line-format
+;; Don't ask until the TAGS file is 15 Mb.
+(setq large-file-warning-threshold 15000000)
+
+;; Set the title of the window to emacs + buffer path
+(setq frame-title-format
       (list
-       "["
-       '(:eval (list (nyan-create)))
-       "]"
-       ;; 'flycheck-mode-line
-       "[%m: %b]"
-       "[%02l:%02c]"
-       ))
+       '(buffer-file-name
+         "emacs %f"
+         (dired-directory dired-directory "%b"))))
+
+(setq projectile-completion-system 'grizzl)
+
+(defun grizzl-select-buffer ()
+  "Select a buffer via `grizzl-search'."
+  (interactive)
+  (let* (
+         (visible-buffer-names
+          (loop for buffer being the buffers
+                for buffer-name = (buffer-name buffer)
+                if (not (string-match "^ " buffer-name))
+                collect buffer-name
+                )
+          )
+         (buffers-index (grizzl-make-index visible-buffer-names))
+         (buffer (grizzl-completing-read "Buffer: " buffers-index)))
+    (if (not (eq buffer (buffer-name)))
+        (switch-to-buffer buffer))))
 
 (defvar ruby-indent-offset)
 (defvar css-indent-offset)
@@ -53,25 +87,16 @@
 (setq backup-directory-alist `(("." . "~/.emacs.d/backups")))
 (setq auto-save-file-name-transforms `((".*" , temporary-file-directory t)))
 (setq vc-follow-symlinks t)
+(setq tags-revert-without-query 1)
 
-(ido-mode 1)
-(ido-everywhere 1)
-(flx-ido-mode 1)
+;; Don't require 'yes' or 'no', just 'y' or 'n'
+(defalias 'yes-or-no-p 'y-or-n-p)
 
-;; disable ido faces to see flx highlights.
-(defvar ido-enable-flex-matching)
-(setq ido-enable-flex-matching t)
-(defvar ido-use-faces)
-(setq ido-use-faces nil)
-
-;; 3rd party config
-(add-to-list 'load-path "~/.emacs.d/theme")
-(add-to-list 'load-path "~/.emacs.d/vendor")
-
-(linum-mode 1)
+(global-linum-mode 1)
 (linum-relative-mode 1)
+(setq left-margin-width 20)
 (defvar linum-relative-format)
-(setq linum-relative-format "%3s  ")
+(setq linum-relative-format "%4s \u2502 ")
 (defvar linum-relative-current-symbol)
 (setq linum-relative-current-symbol "")
 
@@ -79,18 +104,8 @@
 (setq fci-rule-column 79)
 (define-globalized-minor-mode global-fci-mode fci-mode (lambda () (fci-mode 1)))
 (global-fci-mode 1)
+(add-hook 'web-mode-hook (lambda () (fci-mode 0)))
 
-;; Code Completion Mode
-(add-hook 'after-init-hook 'global-company-mode)
-(setq company-auto-complete t)
-
-(nyan-mode 1)
-(setq nyan-animate-nyancat nil)
-(setq nyan-wavy-trail t)
-(setq nyan-bar-length 32)
-(nyan-start-animation)
-
-(require 'evil)
 (evil-mode 1)
 (evil-ex-define-cmd "ls" 'ibuffer)
 
@@ -103,13 +118,10 @@ and \\[evil-shift-left]."
 (define-key evil-normal-state-map "g0" 'evil-first-non-blank)
 (define-key evil-normal-state-map "0" 'evil-first-non-blank)
 
-(define-key evil-normal-state-map "j" 'next-line)
-(define-key evil-normal-state-map "k" 'previous-line)
-
-(require 'evil-leader)
 (global-evil-leader-mode)
 (evil-leader/set-leader ",")
 (evil-leader/set-key
+  "b" 'grizzl-select-buffer
   "s" 'save-buffer
   "k" 'kill-buffer
   "e" (lambda ()
@@ -123,6 +135,16 @@ and \\[evil-shift-left]."
 
 (evil-commentary-mode)
 
+(defcustom projectile-rails-stylesheet-dirs '("app/assets/stylesheets/")
+  "The list of directories to look for the stylesheet files in."
+  :group 'projectile-rails
+  :type '(repeat string))
+
+(defcustom projectile-rails-javascript-dirs '("app/assets/javascripts/")
+  "The list of directories to look for the javascript files in."
+  :group 'projectile-rails
+  :type '(repeat string))
+
 (if (or
      (file-accessible-directory-p ".git")
      (file-accessible-directory-p ".hg")
@@ -131,13 +153,14 @@ and \\[evil-shift-left]."
       (add-hook 'projectile-mode-hook 'projectile-rails-on)
       (projectile-global-mode)
       (setq projectile-enable-caching t)
-      (setq projectile-indexing-method 'native)
-      (add-to-list 'projectile-globally-ignored-directories "vendor")
+      ;; (setq projectile-indexing-method 'alien)
+      (add-to-list 'projectile-globally-ignored-directories "vendor/bundle")
+      (add-to-list 'projectile-globally-ignored-directories "node_modules")
       (add-to-list 'projectile-globally-ignored-directories "tmp")
       (add-to-list 'projectile-globally-ignored-directories "app/assets/images")
       (add-to-list 'projectile-globally-ignored-directories "app/assets/fonts")
       (setq projectile-globally-ignored-file-suffixes '(".png" ".jpg" ".gif" ".woff" ".woff2" ".ttf" ".cache"))
-      (setq tags-table-list (cons (concat (projectile-project-root) ".git") '()))
+      (setq tags-table-list (cons (concat (projectile-project-root) "TAGS") '()))
 
       (evil-leader/set-key
         "cr" 'projectile-rails-find-controller
@@ -162,13 +185,18 @@ and \\[evil-shift-left]."
         )))
   'not-a-projectile-project)
 
-(require 'tomorrow-night-bright-theme)
-
-(require 'flycheck)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 (setq flycheck-check-syntax-automatically
       '(mode-enabled save idle-change))
 (setq flycheck-indication-mode 'left-fringe)
+
+;; disable jshint since we prefer eslint checking
+(setq-default flycheck-disabled-checkers
+  (append flycheck-disabled-checkers
+    '(javascript-jshint)))
+
+;; use eslint with web-mode for jsx files
+(flycheck-add-mode 'javascript-eslint 'web-mode)
 
 ;; Indicate rubocop version
 (setq flycheck-ruby-rubocop-executable "~/.rbenv/shims/rubocop")
@@ -182,13 +210,9 @@ and \\[evil-shift-left]."
 ;; Use c++ mode for header files
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
-(custom-set-variables '(coffee-tab-width 2))
-(require 'sass-mode)
-
 (autoload 'scss-mode "scss-mode")
 (add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))
 
-(require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.hb\\.html\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
@@ -197,29 +221,37 @@ and \\[evil-shift-left]."
 (add-to-list 'auto-mode-alist '("\\.latex\\'" . latex-mode))
 (add-to-list 'auto-mode-alist '("\\.slime\\'" . slim-mode))
 
+
+
 ;; everything is indented 2 spaces
 (setq web-mode-markup-indent-offset 2)
 (setq web-mode-css-indent-offset 2)
 (setq web-mode-code-indent-offset 2)
 
-(require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
 
-;; Highlight current row
-(global-hl-line-mode)
-
-(custom-set-faces
- '(linum ((t (:background "black"))))
- '(linum-relative-current-face ((t (:foreground "white" :background "black"))))
- )
-
 ;; Set the font size to 9pt
-(set-face-attribute 'default nil :family "Fira Mono")
-(set-face-attribute 'default nil :height 90)
+(set-face-attribute 'default nil
+                    :family "Fira Mono"
+                    :height 140)
 
-(set-face-background 'hl-line "grey9")
+(set-face-attribute 'linum nil
+                    :background "black"
+                    :foreground "#999")
+
+(set-face-attribute 'linum-relative-current-face nil
+                    :foreground "white"
+                    :background "black")
+
 (set-face-background 'mode-line "grey9")
 (set-face-background 'fringe "black")
+
+(set-face-attribute 'whitespace-space nil
+                    :background "black"
+                    :foreground "#333")
+(set-face-attribute 'whitespace-newline nil
+                    :background "black"
+                    :foreground "#333")
 
 (define-fringe-bitmap 'my-flycheck-fringe-indicator
   (vector #b00000000
@@ -239,6 +271,22 @@ and \\[evil-shift-left]."
           #b00000000
           #b00000000
           #b00000000))
+
+(flycheck-define-error-level 'error
+  :severity 2
+  :overlay-category 'flycheck-error-overlay
+  :fringe-bitmap 'my-flycheck-fringe-indicator
+  :fringe-face 'flycheck-fringe-error)
+(flycheck-define-error-level 'warning
+  :severity 1
+  :overlay-category 'flycheck-warning-overlay
+  :fringe-bitmap 'my-flycheck-fringe-indicator
+  :fringe-face 'flycheck-fringe-warning)
+(flycheck-define-error-level 'info
+  :severity 0
+  :overlay-category 'flycheck-info-overlay
+  :fringe-bitmap 'my-flycheck-fringe-indicator
+  :fringe-face 'flycheck-fringe-info)
 
 (set-face-attribute 'flycheck-error nil
                     :background "red"
@@ -260,39 +308,69 @@ and \\[evil-shift-left]."
 (set-face-attribute 'flycheck-fringe-info nil
                     :foreground "dodger blue")
 
-(flycheck-define-error-level 'error
-  :severity 2
-  :overlay-category 'flycheck-error-overlay
-  :fringe-bitmap 'my-flycheck-fringe-indicator
-  :fringe-face 'flycheck-fringe-error)
-(flycheck-define-error-level 'warning
-  :severity 1
-  :overlay-category 'flycheck-warning-overlay
-  :fringe-bitmap 'my-flycheck-fringe-indicator
-  :fringe-face 'flycheck-fringe-warning)
-(flycheck-define-error-level 'info
-  :severity 0
-  :overlay-category 'flycheck-info-overlay
-  :fringe-bitmap 'my-flycheck-fringe-indicator
-  :fringe-face 'flycheck-fringe-info)
-
 (defun shreve-dired-mode ()
+  "Configure dired mode to my liking."
   (dired-hide-details-mode)
   (linum-mode))
 (add-hook 'dired-mode-hook 'shreve-dired-mode)
 
 (defun shreve-text-mode ()
+  "Configure Emacs for more intuitive large-blob editing."
   (visual-line-mode)
+  (define-key evil-normal-state-map "j" 'next-line)
+  (define-key evil-normal-state-map "k" 'previous-line)
   (fci-mode 0))
 (add-hook 'latex-mode-hook 'shreve-text-mode)
 (add-hook 'org-mode-hook 'shreve-text-mode)
 (add-hook 'markdown-mode-hook 'shreve-text-mode)
 
-(defun on-after-init()
-  (unless (display-graphic-p (selected-frame))
-    (set-face-background 'default "unspecified-bg" (selected-frame))))
+(defun shreve-jade-mode ()
+  "Use company preferred formatting for jade/pug files."
+  (setq indent-tabs-mode t)
+  (setq tab-width 4))
+  (whitespace-mode)
+(add-to-list 'auto-mode-alist '("\\.jade\\'" . jade-mode))
+(add-hook 'jade-mode-hook 'shreve-jade-mode)
 
-(add-hook 'window-setup-hook 'on-after-init)
+(defun shreve-markdown-mode ()
+  "Configure Emacs for pleasant journaling use."
+  (markdown-mode)
+  (auto-fill-mode 1)
+  (fci-mode 1)
+  (setq fill-column 80)
+)
+(add-to-list 'auto-mode-alist '("\\.md\\'" . shreve-markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.txt\\'" . shreve-markdown-mode))
+
+;;
+;; Ruby-specific code folding config
+;;
+(add-hook 'ruby-mode-hook (lambda () (hs-minor-mode)))
+
+(eval-after-load "hideshow"
+  '(add-to-list 'hs-special-modes-alist
+    `(ruby-mode
+      ,(rx (or "def" "class" "module" "do" "{" "[")) ; Block start
+      ,(rx (or "}" "]" "end"))                       ; Block end
+      ,(rx (or "#" "=begin"))                        ; Comment start
+      ruby-forward-sexp nil)))
+(global-set-key (kbd "C-c h") 'hs-hide-block)
+(global-set-key (kbd "C-c s") 'hs-show-block)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (js2-mode eslint-fix csharp-mode scss-mode dockerfile-mode magit grizzl fzf ag jsx-mode rjsx-mode notmuch web-mode slim-mode simpleclip sass-mode rust-mode projectile-rails package-utils linum-relative jade-mode indent-guide goto-last-change go-mode flycheck flx-ido fish-mode fill-column-indicator evil-leader evil-commentary elixir-mode coffee-mode apib-mode)))
+ '(safe-local-variable-values (quote ((fci-rule-column . 99)))))
 
 (provide '.emacs)
-;;; .emacs ends here
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

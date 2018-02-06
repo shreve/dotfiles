@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
 
-sensors thinkpad-isa-0000 | grep 'fan1' | awk '{print $2 " " $3}'
+RPM=$(sensors thinkpad-isa-0000 | grep 'fan1' | awk '{print $2}')
+
+if [ "$RPM" -gt 0 ]; then
+    echo "$RPM RPM"
+fi

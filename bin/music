@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source ~/bin/_util
+
 # music
 #
 # A wrapper tool for cmus player
@@ -20,11 +22,10 @@ log=/home/jacob/.config/cmus/log
 socket=/home/jacob/.config/cmus/socket
 server="--server $socket"
 cache=/home/jacob/.cache/cmus-status
+trunc_length=115
 
 # We only need to call cmus-remote once, then read from cache file as needed
 cmus-remote $server -Q > $cache 2>&1
-
-echo $@ >> $log
 
 ###############   Commands   ###################
 play() {
@@ -59,7 +60,12 @@ quit() {
 
 status-line() {
     if pgrep cmus >/dev/null 2>&1; then
-       echo "$(icons)  :: $(artist) :: $(song)" | truncate
+       text=$(echo "$(artist) :: $(song)" | truncate)
+       if [ "$(status)" == "paused" ]; then
+           pango_color 'grey' "$text"
+       else
+           pango_color 'leafy' "$text"
+       fi
     fi
 }
 
@@ -92,44 +98,6 @@ repeat() {
     grep "repeat " $cache    | awk '{print $3}'
 }
 
-icons () {
-    text=""
-
-    case "$(status)" in
-        playing)
-            text=""
-            ;;
-
-        paused)
-            text=""
-            ;;
-    esac
-
-    case "$(shuffle)" in
-        true)
-            text="$text $(colorize '#fff' '')"
-            ;;
-
-        false)
-            text="$text  $(colorize '#666' '')"
-            ;;
-    esac
-
-    case "$(repeat)" in
-        true)
-            text="$text $(colorize '#fff' '')"
-            ;;
-
-        false)
-            text="$text $(colorize '#666' '')"
-            ;;
-    esac
-
-
-    echo $text
-}
-
-
 ################   Aux   #####################
 update_i3blocks () {
   pkill -RTMIN+12 i3blocks
@@ -143,17 +111,12 @@ alert_current() {
     fi
 }
 
-# Colorize for pango, which powers i3blocks
-colorize() {
-    echo "<span foreground=\"$1\"> $2 </span>"
-}
-
 sanitize() {
     sed -e 's/\&/&amp;/' | sed -e 's/^\s\+//'
 }
 
 truncate() {
-    local length=$(bc -l <<< "50 + $(echo $(icons) | wc -c)")
+    local length=$(bc -l <<< "$trunc_length + $(echo $(icons) | wc -c)")
     read text
     if [ "$(echo $text | wc -c)" -gt "$length" ]; then
         echo "$(echo $text | cut -c 1-$length)..."

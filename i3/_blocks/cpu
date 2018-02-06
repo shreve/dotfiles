@@ -21,7 +21,8 @@ previous=$(cat /tmp/cpustat)
 current=$(grep 'cpu ' /proc/stat)
 
 # Fetch the CPU temperature in milicentigrade and convert to fahrenheit
-temp=$(awk '{printf "%.1f°F", ($1 / 1000) * (9/5) + 32}' /sys/class/thermal/thermal_zone0/temp)
+temp=$(awk '{printf "%.1f°F", ($1 / 1000) * (9/5) + 32}' \
+       /sys/class/thermal/thermal_zone0/temp)
 
 # Define the awk script to parse the two lines of input.
 # For the first line (NR == 1), just save the working and idle values.

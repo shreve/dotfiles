@@ -1,26 +1,44 @@
 # coding: utf-8
 
 # IRB extensions
-require 'irb/completion'
-require 'ap'
-require 'benchmark'
-require 'fileutils'
+begin
+  require 'irb/completion'
+  require 'ap'
+  require 'benchmark'
+  require 'fileutils'
+  require 'io/console'
+rescue LoadError => e
+  puts e.message
+end
 
-ANSI = {
-  reset:     "\e[0m",
-  bold:      "\e[1m",
-  underline: "\e[4m",
-  lgray:     "\e[0;37m",
-  gray:      "\e[1;30m",
-  lred:      "\e[1;31m",
-  red:       "\e[31m",
-  green:     "\e[32m",
-  yellow:    "\e[33m",
-  blue:      "\e[34m",
-  magenta:   "\e[35m",
-  cyan:      "\e[36m",
-  white:     "\e[37m"
-}.freeze
+begin
+  AwesomePrint.irb!
+rescue NameError => e
+end
+
+module ANSI
+  CODES = {
+    reset:     "\e[0m",
+    bold:      "\e[1m",
+    dim:       "\e[2m",
+    underline: "\e[4m",
+    lgray:     "\e[0;37m",
+    gray:      "\e[0;30m",
+    dgray:     "\e[38;5;236m",
+    lred:      "\e[1;31m",
+    red:       "\e[31m",
+    green:     "\e[32m",
+    yellow:    "\e[33m",
+    blue:      "\e[34m",
+    magenta:   "\e[35m",
+    cyan:      "\e[36m",
+    white:     "\e[37m"
+  }.freeze
+
+  def self.[](key)
+    CODES[key]
+  end
+end
 
 def color(*args)
   string = ''
@@ -31,7 +49,7 @@ def color(*args)
   string
 end
 
-puts " #{color :red, '💎'}  Ruby #{RUBY_VERSION}"
+puts "\n #{color :red, '💎'}  Ruby #{RUBY_VERSION}"
 
 if defined?(Rails)
   path = Rails.root.join('log/railsc.log').to_s
@@ -41,29 +59,54 @@ else
   tag = 'irb/local'
 end
 
-prompt = "[#{color :lred, :underline, tag}]$ "
+pwd = Dir.pwd.split('/').last(2).join('/')
 
+hr = `tput cols`.strip.to_i.times.map { '—' }.join
+prompt = "#{color :dgray, hr}\n[#{color :yellow, pwd}][#{color :green, tag}]"
+
+require 'fileutils'
 FileUtils.touch(path) unless File.exist?(path)
+
+class Mock
+  def method_missing(method, *args, &block)
+    puts "mock." << method.to_s << "( " << args.map(&:to_s).join(', ') << " )"
+    yield if block_given?
+    "hello"
+  end
+
+  def size
+    5
+  end
+
+  def to_str
+    "actual prompt >"
+  end
+
+  def to_a
+    to_str.split('')
+  end
+
+  def *
+    to_str
+  end
+end
 
 IRB.conf[:SAVE_HISTORY] = 1000
 IRB.conf[:HISTORY_FILE] = path
-IRB.conf[:AUTO_INDENT] = true
+IRB.conf[:AUTO_INDENT] = false
 IRB.conf[:IGNORE_SIGINT] = true
 IRB.conf[:PROMPT][:CUSTOM] = {
-  PROMPT_N: prompt,
-  PROMPT_I: prompt,
-  PROMPT_S: nil,
-  PROMPT_C: prompt,
+  PROMPT_I: "#{prompt} > ", # Normal prompt
+  PROMPT_S: "#{prompt} \" ", # Continued string prompt
+  PROMPT_C: "#{prompt} λ ", # Continued command prompt
   RETURN: "=> %s\n",
   AUTO_INDENT: true
 }
 IRB.conf[:PROMPT_MODE] = :CUSTOM
 
-AwesomePrint.irb!
-
 # copy a string to the clipboard
 def copy(string)
-  IO.popen('xsel', 'w') { |f| f << string.to_s.strip }
+  IO.popen('xsel -i --clipboard', 'w') { |f| f << string.to_s.strip }
   string
 end
 

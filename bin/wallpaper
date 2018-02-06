@@ -73,11 +73,20 @@ add() {
 }
 
 # Change the wallpaper to be a random selection from the available pics
-update() {
+random() {
     selected=$(ls $wallpaper_location | sort -R | head -1)
-    feh --bg-fill $wallpaper_location/$selected
+    set_wallpaper $selected
+}
 
-    convert -blur 8x8 $wallpaper_location/$selected $lockscreen &
+# Use fzf to search though filenames
+search() {
+    selected=$(cd $wallpaper_location && fzf -f "$1" | head -1)
+    set_wallpaper $selected
+}
+
+set_wallpaper() {
+    feh --bg-fill $wallpaper_location/$1
+    convert -blur 8x8 -scale 2560x1440 $wallpaper_location/$1 $lockscreen &
 }
 
 watch() {
@@ -127,7 +136,13 @@ case $1 in
         ;;
 
     update|change)
-        update
+        random
+        ;;
+
+    search)
+        shift
+
+        search "$@"
         ;;
 
     watch)

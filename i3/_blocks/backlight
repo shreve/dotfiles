@@ -18,4 +18,4 @@ case $BLOCK_BUTTON in
         ;;
 esac
 
-printf " %.0f%%" "$(xbacklight)"
+printf " %.0f%%" "$(xbacklight)"

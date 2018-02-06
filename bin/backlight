@@ -1,26 +1,25 @@
 #!/usr/bin/env bash
 
 step=5
-time=0
 
 update_i3blocks () {
   pkill -RTMIN+10 i3blocks
 }
 
 increase () {
-    xbacklight -inc $step -time $time
+    xbacklight -inc $step
 }
 
 decrease () {
-    xbacklight -dec $step -time $time
+    xbacklight -dec $step
 }
 
 set_intensity () {
-    xbacklight -set $1 -time $time
+    xbacklight -set "$1"
 }
 
 get_intensity () {
-    printf "%.1f" $(xbacklight)
+    printf "%.1f" "$(xbacklight)"
 }
 
 case "$1" in

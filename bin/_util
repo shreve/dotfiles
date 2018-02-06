@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+declare -A pcolors
+
+pcolors[black]="#000"
+pcolors[grey]="#555"
+
+# http://www.colourlovers.com/palette/4554219/Galaxy_Wars
+pcolors[lavender]="#A582EE"
+pcolors[leafy]="#53D462"
+
+# http://www.colourlovers.com/palette/322235/Computer_Warrior
+pcolors[bresnay]="#3EFFB8"
+pcolors[devji]="#50DDFF"
+pcolors[computer warrior]="#75BEFF"
+
+pango_color() {
+    color=$1
+    if [[ ! -z ${pcolors[$color]} ]]; then
+        color=${pcolors[$color]}
+    fi
+    echo "<span foreground=\"$color\">$2</span>"
+}
+
+case "$1" in
+    pcolors)
+        for color in "${!pcolors[@]}"; do
+            echo -e "$color\t${pcolors[$color]}"
+        done
+        ;;
+esac

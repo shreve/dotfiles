@@ -1,19 +1,17 @@
 #!/bin/bash
 
+source ~/bin/_util
+
 case $BLOCK_BUTTON in
     1)
         nm-connection-editor
         ;;
 esac
 
-colorize () {
-    echo "<span foreground=\"$1\">$2</span>"
-}
-
 INTERFACE="${BLOCK_INSTANCE:-wlp4s0}"
 
 if [[ "$(cat /sys/class/net/$INTERFACE/operstate)" = 'down' ]]; then
-    echo "$(colorize '#ff0000' '  WiFi off')"
+    echo "$(pango_color 'grey' '  WiFi off')"
     exit
 fi
 
@@ -33,10 +31,12 @@ color () {
     echo "#$(/home/jacob/code/dotfiles/bin/num2hex $red $green 0)"
 }
 
-echo -n "$(colorize '#00ff00' "  $SSID") $(colorize $(color $QUALITY) $QUALITY%)"
+echo -n "$(pango_color 'lavender' "  $SSID")"
+
+if [[ "$QUALITY" -lt 70 ]]; then
+    echo -n "$(pango_color $(color $QUALITY) $QUALITY%)"
+fi
 
 if nmcli c | grep vpn | grep wlp4s0 >/dev/null; then
-    echo -n $(colorize '#00FF00' ' VPN')
-# else
-#     VPN=$(colorize '#FF0000' 'OFF')
+    echo -n $(pango_color 'bresnay' ' VPN')
 fi

@@ -18,7 +18,7 @@
 set EDITOR emacs
 set -x GOPATH ~/code/go
 set NPMPATH node_modules/.bin
-set PATH ./bin ~/code/dotfiles/bin ~/.rbenv/bin ~/.cargo/bin $GOPATH/bin $NPMPATH $PATH
+set PATH ~/code/dotfiles/bin ./bin ~/.rbenv/bin ~/.cargo/bin ~/.yarn/bin $NPMPATH $GOPATH/bin $PATH
 set CDPATH ./ ~/ ~/code ~/Documents/School
 set -x GPG_TTY (tty)
 
@@ -50,6 +50,13 @@ end
 # -O maintains the file name from the URL
 function download
   keep-doing curl -O -C - $argv
+end
+
+function docker-clean
+  docker stop (docker ps -a -q --no-trunc)
+  docker rm (docker ps -a -q --no-trunc)
+  docker rmi -f (docker images -a -q --no-trunc)
+  docker volume rm (docker volume ls -qf dangling=true)
 end
 
 function draw_separator --on-event fish_prompt
@@ -95,8 +102,6 @@ function fish_mode_prompt --description 'Displays the current vi mode'
   end
 end
 
-fish_vi_key_bindings
-
 # Print a list of the most commonly used commands in history, grouped by the
 # first 2 terms, rather than first 1.
 # Accepts count, defaults to 10
@@ -129,6 +134,10 @@ end
 function mkd
   mkdir $argv
   cd $argv
+end
+
+function o
+  xdg-open $argv 2>&1 >/dev/null &
 end
 
 function pgr
@@ -194,7 +203,7 @@ function sudo
 end
 
 function tags
-  fd -I -tf \.rb | etags - &
+  fd -HI -tf "\.(rb|js)" | etags - &
 end
 
 # Find and replace in card titles across all boards
@@ -248,8 +257,6 @@ function __edit_input
   commandline (cat /tmp/input)
 end
 
-bind \ce "__edit_input"
-
 # Prefix the previous line with $argv
 function __run_with_prefix
   commandline -i $argv
@@ -257,13 +264,9 @@ function __run_with_prefix
   commandline -i $history[1]
 end
 
-function __bind_keys
+function fish_user_key_bindings
+  # fzf_key_bindings
   bind \cs "__run_with_prefix sudo"
   bind \cb "__run_with_prefix bx"
-end
-__bind_keys
-
-
-function fish_user_key_bindings
-  fzf_key_bindings
+  bind \ce "__edit_input"
 end

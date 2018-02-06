@@ -6,7 +6,6 @@
 
 interface=$(nmcli d | grep wifi | cut -d' ' -f1)
 config_dir=/etc/NetworkManager/system-connections
-dialup_sound=~/Downloads/dialup.mp3
 
 # 1. When we encounter "encryption", set a lock icon if it's on.
 # 2. When we encounter "quality", get the numerator and denominator.
@@ -47,11 +46,7 @@ new() {
 }
 
 join() {
-    cvlc $dialup_sound >/dev/null 2>&1 &
-    pid=$!
-    sleep 1
     nmcli --ask -pretty c up "$@"
-    kill $pid
 }
 
 leave() {
@@ -114,7 +109,7 @@ case $1 in
         ;;
 
     status|st)
-        nmcli c
+        nmcli -colors yes c | grep -v bridge
         ;;
 
     remove|rm)

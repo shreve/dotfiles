@@ -13,3 +13,11 @@ mutt/neomutt
 mutt/certificates
 
 bin/well
+
+# Ignore vendor binaries
+bin/alacritty
+bin/cava
+bin/fzf
+bin/dpmswatch
+bin/rg
+bin/ngrok

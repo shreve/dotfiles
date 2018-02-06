@@ -84,21 +84,32 @@ tx_rate=$(( $tx_diff / $time_diff ))
 # 1024^2 = 1048576, then display MiB/s instead
 
 # incoming
-echo -n "$INLABEL"
 rx_kib=$(( $rx_rate >> 10 ))
-if hash bc 2>/dev/null && [[ "$rx_rate" -gt 1048576 ]]; then
-  printf '%sM' "`echo "scale=1; $rx_kib / 1024" | bc`"
-else
-  echo -n "${rx_kib}K"
-fi
-
-echo -n " "
 
 # outgoing
-echo -n "$OUTLABEL"
 tx_kib=$(( $tx_rate >> 10 ))
-if hash bc 2>/dev/null && [[ "$tx_rate" -gt 1048576 ]]; then
-  printf '%sM' "`echo "scale=1; $tx_kib / 1024" | bc`"
-else
-  echo -n "${tx_kib}K"
+
+# If the download rate is greater than 0, render it.
+if [ "$rx_kib" -gt 0 ]; then
+    echo -n "$INLABEL"
+    if hash bc 2>/dev/null && [[ "$rx_rate" -gt 1048576 ]]; then
+        printf '%sM' "`echo "scale=1; $rx_kib / 1024" | bc`"
+    else
+        echo -n "${rx_kib}K"
+    fi
+fi
+
+# If both rates are greater than 0, both are present. Draw a separator.
+if [ "$rx_kib" -gt 0 ] && [ "$tx_kib" -gt 0 ]; then
+    echo -n " "
+fi
+
+# If the upload rate is greater than 0, render it.
+if [ "$tx_kib" -gt 0 ]; then
+    echo -n "$OUTLABEL"
+    if hash bc 2>/dev/null && [[ "$tx_rate" -gt 1048576 ]]; then
+        printf '%sM' "`echo "scale=1; $tx_kib / 1024" | bc`"
+    else
+        echo -n "${tx_kib}K"
+    fi
 fi

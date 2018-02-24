@@ -32,8 +32,35 @@ alias bx "bundle exec"
 
 alias c "clear"
 
+function center-text
+  cat $argv > /tmp/center
+  set -l screen (tput cols)
+  set -l max 0
+  cat /tmp/center | while read -l line
+    set -l length (string length $line)
+    if test $length -gt $max
+      set max $length
+    end
+  end
+  set -l pad (math "($screen - $max)/2")
+  cat /tmp/center | while read -l line
+    printf "%"$pad"s" " "
+    echo $line
+  end
+end
+
 function compress
   tar czfv $argv.tar.gz $argv
+end
+
+function confirm-kill
+  if pgrep $argv >/dev/null
+    read -l -P  "Kill $argv? [y/n] " cont
+    switch $cont
+      case y Y
+        killall $argv
+    end
+  end
 end
 
 alias copy "xsel -i --clipboard"
@@ -52,8 +79,12 @@ function download
   keep-doing curl -O -C - $argv
 end
 
+function docker-killall
+  docker stop (docker ps -a -q --no-trunc) >/dev/null
+end
+
 function docker-clean
-  docker stop (docker ps -a -q --no-trunc)
+  docker-killall
   docker rm (docker ps -a -q --no-trunc)
   docker rmi -f (docker images -a -q --no-trunc)
   docker volume rm (docker volume ls -qf dangling=true)
@@ -79,6 +110,10 @@ alias extract "tar xzfv"
 function fishrc
   emacs ~/.config/fish/config.fish
   source ~/.config/fish/config.fish
+end
+
+function fish_greeting
+  pretty-fortune
 end
 
 function fish_mode_prompt --description 'Displays the current vi mode'
@@ -126,6 +161,26 @@ end
 
 alias ls exa
 
+function low-power
+  if count $argv >/dev/null
+    switch $argv
+      case on
+        touch /tmp/low_power_mode
+        backlight 20
+        reset-i3blocks
+      case off
+        rm /tmp/low_power_mode
+        backlight 70
+    end
+  else
+    if test -e /tmp/low_power_mode
+      echo "on"
+    else
+      echo "off"
+    end
+  end
+end
+
 # Force kill with a more effective search
 function massacre
   ps aux | grep -i $argv[1] | awk '{print $2}' | xargs kill -9
@@ -137,7 +192,7 @@ function mkd
 end
 
 function o
-  xdg-open $argv 2>&1 >/dev/null &
+  nohup xdg-open $argv ^/dev/null >/dev/null &
 end
 
 function pgr
@@ -154,9 +209,22 @@ function portsnipe
   echo $pid $pname
 end
 
+function pretty-fortune
+  echo
+  echo
+  fortune | center-text
+  echo
+end
+
 function rusty
   rustc $argv.rs
   ./$argv
+end
+
+function reset-i3blocks
+  for i in "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+    pkill -RTMIN+$i i3blocks
+  end
 end
 
 function save_path --on-event fish_prompt
@@ -232,7 +300,7 @@ function upgrade
   echo "sudo apt list --upgradable"
   sudo apt list --upgradable
 
-  read -l -p __prompt cont
+  read -l -P 'Download updates? [y/n]' cont
 
   switch $cont
     case y Y
@@ -243,10 +311,6 @@ function upgrade
 
   echo "sudo apt autoremove"
   sudo apt autoremove
-end
-
-function __prompt
-  echo 'Download updates? [y/n] '
 end
 
 alias ytmp3 "youtube-dl -x --audio-format mp3"

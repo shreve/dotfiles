@@ -18,4 +18,6 @@ case $BLOCK_BUTTON in
         ;;
 esac
 
-printf " %.0f%%" "$(xbacklight)"
+source ~/bin/_util
+
+pango_color "show me your heart" "$(printf " %.0f%%" "$(xbacklight)")"

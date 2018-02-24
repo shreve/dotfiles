@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
-source /home/jacob/bin/_util
+[ -e /tmp/low_power_mode ] && exit 0
 
 case $BLOCK_BUTTON in
     1)
         xdg-open "https://darksky.net" >/dev/null
         ;;
+    2)
+        /home/jacob/bin/weather force_update
 esac
 
+source /home/jacob/bin/_util
 echo -n "$(pango_color "computer warrior" "$(/home/jacob/bin/weather line)")"

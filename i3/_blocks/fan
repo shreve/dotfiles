@@ -3,5 +3,6 @@
 RPM=$(sensors thinkpad-isa-0000 | grep 'fan1' | awk '{print $2}')
 
 if [ "$RPM" -gt 0 ]; then
-    echo "$RPM RPM"
+    source ~/bin/_util
+    pango_color "bresnay" "$RPM RPM"
 fi

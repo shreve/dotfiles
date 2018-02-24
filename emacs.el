@@ -43,6 +43,7 @@
 (save-place-mode 1)
 (setq tab-stop-list (number-sequence 2 60 2)) ;; generate a list from 2-60 by 2s
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
+(setq dired-hide-details-hide-symlink-targets nil)
 
 ;; Don't ask until the TAGS file is 15 Mb.
 (setq large-file-warning-threshold 15000000)

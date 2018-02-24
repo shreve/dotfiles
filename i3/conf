@@ -15,13 +15,16 @@ set $mod Mod1
 
 set $bin /home/jacob/code/dotfiles/bin
 
+set $color #6D33E7
+#A582EE
+
 gaps inner 20
 gaps outer 0
 # smart_gaps on
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
-font pango:firamono 12px
+font pango:Ubuntu Mono 14px
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
@@ -218,7 +221,8 @@ bar {
     status_command i3blocks
     font pango:FontAwesome, Ubuntu Mono 16px
 
-    tray_output none
+    tray_output primary
+    tray_padding 3 px
 
     separator_symbol |
 
@@ -226,8 +230,8 @@ bar {
 
     colors {
            #                  Backgrd Border  Text Color
-           focused_workspace  #0080ff #0080ff #ffffff
-           active_workspace   #0080ff #0080ff #ffffff
+           focused_workspace  $color  $color  #ffffff
+           active_workspace   $color  $color  #ffffff
            inactive_workspace #000000 #000000 #ffffff
            urgent_workspace   #ff0000 #ff0000 #ffffff
     }
@@ -237,5 +241,9 @@ new_window pixel
 hide_edge_borders none
 
 #                  Border  Backgrd text    indctr    child_border
-client.focused     #0080ff #0080ff #ffffff #2e9ef4   #0080ff
-client.unfocused   #0080ff #31343E #ffffff #2e9ef4   #ffffff
+client.focused     $color  $color  #ffffff #2e9ef4   $color
+client.unfocused   $color  #31343E #ffffff #2e9ef4   #ffffff
+
+# old blue: #0080ff
+
+for_window [class="zoom" instance="zoom"] floating enable

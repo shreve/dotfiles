@@ -34,9 +34,9 @@ color () {
 echo -n "$(pango_color 'lavender' "  $SSID")"
 
 if [[ "$QUALITY" -lt 70 ]]; then
-    echo -n "$(pango_color $(color $QUALITY) $QUALITY%)"
+    echo -n "$(pango_color "$(color "$QUALITY")" " $QUALITY%")"
 fi
 
 if nmcli c | grep vpn | grep wlp4s0 >/dev/null; then
-    echo -n $(pango_color 'bresnay' ' VPN')
+    echo -n "$(pango_color 'bresnay' ' VPN')"
 fi

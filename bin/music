@@ -49,9 +49,15 @@ next() {
 }
 
 start() {
-    if ! screen -r -D cmus >/dev/null ; then
-        screen -S cmus /usr/bin/cmus --listen $socket
-    fi
+    if ! attach_cmus; then run_cmus; fi
+}
+
+attach_cmus() {
+    screen -r -D cmus >/dev/null 2>&1
+}
+
+run_cmus() {
+    screen -S cmus /usr/bin/cmus --listen $socket >/dev/null 2>&1
 }
 
 quit() {
@@ -116,8 +122,8 @@ sanitize() {
 }
 
 truncate() {
-    local length=$(bc -l <<< "$trunc_length + $(echo $(icons) | wc -c)")
-    read text
+    local length=$trunc_length
+    read -r text
     if [ "$(echo $text | wc -c)" -gt "$length" ]; then
         echo "$(echo $text | cut -c 1-$length)..."
     else

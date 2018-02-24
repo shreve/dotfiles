@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+[ -e /tmp/low_power_mode ] && exit 0
+
 usage=$(df -B M ${BLOCK_INSTANCE:-$1} | tail -1 | awk '{print $3/1}')
 usage=$(echo "scale=1; $usage/1024" | bc -l)
-echo "$usage Gb"
+
+source ~/bin/_util
+pango_color "pink cocktail" "$usage Gb"

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+source ~/bin/_util
+pango_color 'lavender' "$(date '+%a %b %-d %-I:%M%P')"

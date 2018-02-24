@@ -49,7 +49,7 @@ temp () {
 }
 
 apparent_temp () {
-    all_data | grep apparent | awk '{ print $3 }' | sed 's/\..*//'
+    all_data | grep apparent | awk '{ print $3 }' | sed 's/[\.,].*//'
 }
 
 coords () {
@@ -94,6 +94,7 @@ case "$1" in
 
     line)
         echo -en "$(city) $(apparent_temp)°F $(icon)"
+        exit 0
         ;;
 
     *)
@@ -103,3 +104,5 @@ case "$1" in
              "Wind $(wind_speed) mph";
         ;;
 esac
+
+pkill -RTMIN+14 i3blocks

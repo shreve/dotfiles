@@ -4,6 +4,7 @@ declare -A pcolors
 
 pcolors[black]="#000"
 pcolors[grey]="#555"
+pcolors[magenta]="#DF1F99"
 
 # http://www.colourlovers.com/palette/4554219/Galaxy_Wars
 pcolors[lavender]="#A582EE"
@@ -13,6 +14,12 @@ pcolors[leafy]="#53D462"
 pcolors[bresnay]="#3EFFB8"
 pcolors[devji]="#50DDFF"
 pcolors[computer warrior]="#75BEFF"
+
+# http://www.colourlovers.com/palette/937624/Dance_To_Forget
+pcolors[give your heart]="#EDE574"
+pcolors[show me your heart]="#FC913A"
+pcolors[pink cocktail]="#FF4E50"
+
 
 pango_color() {
     color=$1

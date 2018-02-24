@@ -27,7 +27,6 @@
 (require 'ruby-text-objects)
 (require 'crystal-mode)
 (require 'jade-mode)
-;; (require 'linum-whitespace-mode)
 
 ;; General Config
 (setenv "PATH" (concat  "~/.emacs.d/bin:" (getenv "PATH")))
@@ -38,9 +37,10 @@
 (setq-default tab-width 2)
 (setq inhibit-splash-screen t)
 (menu-bar-mode -1) ;; minimal chrome
-(tool-bar-mode -1)
+(tool-bar-mode -1) ;; hide tool bar
 (toggle-scroll-bar -1)
 (show-paren-mode 1) ;; show matching parens
+(save-place-mode 1)
 (setq tab-stop-list (number-sequence 2 60 2)) ;; generate a list from 2-60 by 2s
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
@@ -311,6 +311,7 @@ and \\[evil-shift-left]."
 (defun shreve-dired-mode ()
   "Configure dired mode to my liking."
   (dired-hide-details-mode)
+  (auto-revert-mode)
   (linum-mode))
 (add-hook 'dired-mode-hook 'shreve-dired-mode)
 

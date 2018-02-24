@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+# App Wrap
+# ========
+#
+# App Wrap allows gives you an easy way to manage processes that aren't
+# terminal-friendly.
+#
+# For example, Enpass. It's a great app, but it's got a weird start path. There
+# is no `enpass` util for the command line, you run the script
+# /opt/Enpass/bin/runenpass.sh. This is annoying to use when I restart Enpass.
+#
+# With App Wrap, I just make a small executable in my bin directory:
+#
+# ~/bin/enpass
+#
+# #!/usr/bin/env bash
+#
+# export QT_AUTO_SCREEN_SCALE_FACTOR=0
+#
+# echo "$*" | appwrap Enpass /opt/Enpass/bin/runenpass.sh
+#
+# This lets me use start, stop, restart, and status commands for the Enpass
+# process very easily.
+#
+#
+# Note about i3
+# =============
+#
+# One thing about Enpass and other apps I've used for this that I don't like is
+# that they start a new window. I just want to close that window automatically.
+# I use i3wm, and use the utility i3-msg to close those windows. If you don't
+# use i3, you'll have an error when you use this utility unless you remove or
+# update the close_window routine.
+
+pname=$1
+program=${2:-$1}
+wname=${3:-$1}
+
+[ -z "$pname" ] && echo "Can't wrap nothing" && exit 1
+
+[ ! -t 0 ] && input=$(cat /dev/stdin)
+
+start() {
+    if is_running; then
+        echo "$pname already running"
+    else
+        run_and_detach >/dev/null 2>&1 &
+        close_window &
+    fi
+}
+
+stop() {
+    pkill "$pname"
+}
+
+run_and_detach() {
+    nohup "$program"
+}
+
+close_window() {
+    ! which i3-msg >/dev/null && return;
+
+    n=0
+    until [ $n -gt 100 ]; do
+        i3-msg "[title=\"$wname\"] kill" >/dev/null
+        n=$((n+1))
+        sleep 0.01
+    done
+}
+
+is_running() {
+    pgrep "$pname" >/dev/null
+}
+
+status() {
+    if is_running; then
+        echo "$pname is running"
+    else
+        echo "$pname is not running"
+    fi
+}
+
+case "$input" in
+    status)
+        status
+        ;;
+
+    restart)
+        stop
+        sleep 0.25
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    *)
+        start
+        ;;
+esac

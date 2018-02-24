@@ -75,7 +75,7 @@ if is_muted; then
     color='grey'
     icon="<span> </span>"
 else
-    color='#ffffff'
+    color="give your heart"
     if [ $(volume) -gt 50 ]; then
         icon=""
     else
@@ -84,4 +84,4 @@ else
 fi
 
 
-echo $(pango_color $color "$icon $(volume)%")
+echo $(pango_color "$color" "$icon $(volume)%")

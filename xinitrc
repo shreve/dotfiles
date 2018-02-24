@@ -25,11 +25,14 @@ xrandr --dpi 100
 # Set wallpaper
 /home/jacob/.fehbg &
 
-# Enable flux to run in the background
-fluxgui &
+# Start Flux
+/home/jacob/bin/flux
 
 # Start Enpass
 /home/jacob/bin/enpass
+
+# Start rescuetime
+/home/jacob/bin/rt &
 
 # Start XSS-lock to lock the screen when it turns off
 /home/jacob/bin/lock watch

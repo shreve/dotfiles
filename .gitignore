@@ -7,6 +7,7 @@ emacs.d/image-dired
 emacs.d/projectile*
 emacs.d/url
 emacs.d/places
+*.elc
 
 mutt/accounts/*
 mutt/cache/*

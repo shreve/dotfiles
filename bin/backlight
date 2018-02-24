@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-step=5
+step=10
 
 update_i3blocks () {
   pkill -RTMIN+10 i3blocks

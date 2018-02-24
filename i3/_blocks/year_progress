@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
+source ~/bin/_util
 format='(((%j - 1) * 24 * 3600) + (%k * 3600) + (%M * 60) + %S) / 315360'
-date "+scale=2; $format" | bc | sed 's/$/%/'
+pango_color 'lavender' "$(date "+scale=2; $format" | bc | sed 's/$/%/')"

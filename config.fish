@@ -15,10 +15,12 @@
 #                         `._,-'  \  `-.-'  /  `-._,'
 #                                  `-.___,-'
 
+set my_paths ~/code/dotfiles/bin ~/code/vendor/bin ./bin
+
 set EDITOR emacs
 set -x GOPATH ~/code/go
 set NPMPATH node_modules/.bin
-set PATH ~/code/dotfiles/bin ./bin ~/.rbenv/bin ~/.cargo/bin ~/.yarn/bin $NPMPATH $GOPATH/bin $PATH
+set PATH  $my_paths ~/.rbenv/bin ~/.cargo/bin ~/.yarn/bin $NPMPATH $GOPATH/bin $PATH
 set CDPATH ./ ~/ ~/code ~/Documents/School
 set -x GPG_TTY (tty)
 

@@ -14,6 +14,7 @@ exec ~/.xinitrc
 set $mod Mod1
 
 set $bin /home/jacob/code/dotfiles/bin
+set $term /home/jacob/code/vendor/bin/alacritty --working-directory="`cat ~/.cache/pwd`"
 
 set $color #6D33E7
 #A582EE
@@ -47,7 +48,7 @@ bindsym $mod+space scratchpad show
 bindsym $mod+Shift+space move scratchpad
 
 # start a terminal
-bindsym $mod+Return exec /home/jacob/bin/alacritty --working-directory="`cat ~/.cache/pwd`" # i3-sensible-terminal
+bindsym $mod+Return exec $term
 
 # open a browser window
 # bindsym $mod+b exec google-chrome-stable --force-device-scale-factor=1.25
@@ -79,12 +80,6 @@ bindsym $mod+h focus left
 bindsym $mod+j focus down
 bindsym $mod+k focus up
 bindsym $mod+l focus right
-
-# alternatively, you can use the cursor keys:
-# bindsym $mod+Left focus left
-# bindsym $mod+Down focus down
-# bindsym $mod+Up focus up
-# bindsym $mod+Right focus right
 
 # move focused window
 bindsym $mod+Shift+h move left
@@ -192,20 +187,17 @@ bindsym XF86MonBrightnessDown exec $bin/backlight - # decrease screen brightness
 bindsym $mod+XF86MonBrightnessUp   exec $bin/keylight up # increase keyboard brightness
 bindsym $mod+XF86MonBrightnessDown exec $bin/keylight down # decrease keyboard brightness
 
-bindsym XF86Display exec /home/jacob/code/bin/display toggle
+bindsym XF86Display exec $bin/display toggle
 
 bindsym XF86LaunchA exec $bin/wallpaper change
 
-bindsym XF86Explorer exec --no-startup-id gnome-terminal --command="ranger `cat ~/.cache/pwd`"
-bindsym $mod+XF86Explorer exec gnome-terminal --command="ranger Downloads"
-# bindsym XF86Explorer exec nautilus --browser "Downloads"
+bindsym XF86Explorer exec $term --command="ranger"
 
 # Music controls
 bindcode 110 exec $bin/music prev # Home
 bindcode 115 exec $bin/music pause # End
 bindcode 118 exec $bin/music next # Insert
 
-# bindsym $mod+XF86Explorer exec nautilus --browser "`cat ~/.cache/pwd`"
 bindsym Mod1+Tab workspace next_on_output
 bindsym Mod1+Shift+Tab workspace prev_on_output
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+[ -e /tmp/low_power_mode ] && exit 0
+
 case $BLOCK_BUTTON in
     1)
         gnome-terminal --command "htop"
@@ -45,4 +47,5 @@ usage=$(echo -e "$previous\n$current" | awk "$awkscript")
 # average usage since this line was run.
 save_current
 
-echo "$usage $temp"
+source ~/bin/_util
+pango_color "magenta" "$usage $temp"

@@ -26,12 +26,12 @@
   gpgsign = true
 [core]
   quotepath = false
-  editor = emacs
+  editor = vim
   excludesfile = ~/.gitignore
   mergetool = emacs
   pager = less -r
 [help]
-#  autocorrect = 1 # This actually sucks
+  # autocorrect = 5 # This actually sucks
 [init]
   templatedir = ~/.gittemplate
 [merge]

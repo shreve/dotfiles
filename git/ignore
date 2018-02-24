@@ -1,7 +1,7 @@
 # Files
 .DS_Store
-tags
 .notes
+.#notes.org
 .envrc
 .vimrc
 .powenv
@@ -9,6 +9,8 @@ tags
 jake.rake
 notes.org
 .dir-locals.el
+TAGS
+TAGS.*
 
 # Mercurial
 .hg

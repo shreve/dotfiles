@@ -13,16 +13,32 @@ perform_lock() {
            --show-failed-attempts
 }
 
-case $1 in
-    watch)
-        pkill xss-lock
+start() {
+    if ! pgrep xss-lock >/dev/null; then
         xss-lock -- "$0" --safe-at-home >/dev/null &
+    fi
+}
+
+stop() {
+    pkill xss-lock
+}
+
+case $1 in
+    stop)
+        stop
+        ;;
+
+    start|watch)
+        start
+        ;;
+
+    restart)
+        stop
+        start
         ;;
 
     *)
-        if  at_home && [[ "$*" == *"--safe-at-home"* ]]; then
-            exit 0;
-        fi
+        at_home && [[ "$*" == *"--safe-at-home"* ]] && exit 0
         perform_lock
         ;;
 esac

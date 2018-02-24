@@ -3,7 +3,7 @@
 branches=$(git branch -vv)
 gone=$(echo "$branches" | grep gone | awk '{print $1}')
 
-if [ -z $gone ]; then
+if [[ -z "$gone" ]]; then
     echo "All branches pruned"
 else
     echo "Cleaning up branches"

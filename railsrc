@@ -1,2 +1,0 @@
--d postgresql   # default to postgres
---skip-bundle   # don't waste my time bundle installing immediately

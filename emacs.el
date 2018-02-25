@@ -15,10 +15,10 @@
 (add-to-list 'load-path "~/.emacs.d/theme")
 (add-to-list 'load-path "~/.emacs.d/vendor")
 
+(load "grizzl/grizzl")
 (require 'whitespace)
 (require 'evil)
 (require 'evil-leader)
-(require 'grizzl)
 (require 'tomorrow-night-bright-theme)
 (require 'flycheck)
 (require 'sass-mode)
@@ -62,7 +62,7 @@
   (interactive)
   (let* (
          (visible-buffer-names
-          (loop for buffer being the buffers
+          (cl-loop for buffer being the buffers
                 for buffer-name = (buffer-name buffer)
                 if (not (string-match "^ " buffer-name))
                 collect buffer-name

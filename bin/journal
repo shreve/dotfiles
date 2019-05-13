@@ -4,7 +4,7 @@ journaldir=~/Documents/journal
 date=today
 
 datestring() {
-    usedate=${1:-date}
+    usedate=${1:-$date}
     date --date="$usedate" '+%A, %b %d, %Y'
 }
 
@@ -56,7 +56,7 @@ check_for_late_entries() {
 }
 
 word_count() {
-    tail --silent -n +3 $journaldir/* | wc -w
+    wc -w $journaldir/*
 }
 
 case "$1" in

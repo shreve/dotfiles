@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 
 mount="/media/android"
-drive_root="$mount/Internal shared storage"
+drive_root="$mount/Samsung SD card"
 
 install() {
     sudo apt install jmtpfs
 }
 
 quit() {
-    sudo pkill jmtpfs
+    if is_running; then
+        echo "Quitting jmtpfs."
+        sudo pkill jmtpfs
+    fi
+
+    echo "Unmounting $mount."
     fusermount -u $mount 2>/dev/null
 }
 
 initialize() {
     echo "Initializing android phone as drive"
-    sudo jmtpfs $mount -o allow_other -o auto_unmount -o default_permissions
+    jmtpfs $mount -o auto_unmount -o default_permissions
 
     if is_initialized; then
         echo "Drive mounted sucessfully";
@@ -24,12 +29,16 @@ initialize() {
     fi
 }
 
+is_running() {
+    pgrep jmtpfs >/dev/null
+}
+
 is_initialized() {
     [[ -d $drive_root ]]
 }
 
 sync_music() {
-    sudo rsync --verbose --update --delete --recursive --inplace --dirs ~/Music/* "$drive_root/Music/"
+    rsync --verbose --update --delete --recursive --inplace --dirs ~/Music/* "$drive_root/Music/"
 }
 
 auto_initialize() {
@@ -38,6 +47,7 @@ auto_initialize() {
 
         if ! is_initialized; then
             echo "Unable to initialize"
+            echo "Is the phone on \"transfer files\" mode?"
             exit 1
         fi
     else
@@ -56,9 +66,14 @@ case $1 in
         sync_music
         ;;
 
-
     quit)
         quit
         ;;
 
+    *)
+        echo -e "psync\n"
+        echo "init"
+        echo "music"
+        echo "quit"
+        ;;
 esac

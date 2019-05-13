@@ -19,6 +19,7 @@ pcolors[computer warrior]="#75BEFF"
 pcolors[give your heart]="#EDE574"
 pcolors[show me your heart]="#FC913A"
 pcolors[pink cocktail]="#FF4E50"
+pcolors[above yellow]="#F9D423"
 
 
 pango_color() {

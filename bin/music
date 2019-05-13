@@ -6,7 +6,7 @@ source ~/bin/_util
 #
 # A wrapper tool for cmus player
 #
-# (c) 2017 Jacob Shreve
+# (c) 2019 Jacob Shreve
 #
 # This executable serves several purposes
 # 1. CLI for cmus without opening via `cmus-remote`
@@ -16,16 +16,22 @@ source ~/bin/_util
 #    background, and it's easy to attach and control
 # 3. Generate the status line for i3blocks
 # 4. Alert of the current track using notify-send
+# 5. Display album art for the currently playing song
+#    (feature inspired by https://github.com/sdushantha/kunst)
 
 # These paths all contain full paths because sometimes root uses this
 log=/home/jacob/.config/cmus/log
 socket=/home/jacob/.config/cmus/socket
 server="--server $socket"
 cache=/home/jacob/.cache/cmus-status
+cover=/tmp/cmus-cover.jpg
 trunc_length=115
+blank_icon="iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJESURBVGhD7Zg/axRRFMVXAtpYphEVREKClnHfJI0MmReSfAC3tRejhaBgo70fwN7aD2BvEU0gfztbu5AqMxNjoVnvG87KZXy7z5m5dxLI/OCw8Pade+7M3n3Dbq+jo6OjY8RwMJhKk+hhlph3eRJ9w/LF5jCOr1PTj6jpD7mNjkjDkbDl4vFjpX87teZJlkSfSD9501zYfv5QJ1fyZHGexuJtZs12ZqMzX8NlwX4+nK3NXMutWaOm39Nd/u5rMCSUao80fjBNwY+p8Y+krNxQVaGsLsfWzFLYS2r4M30Rf5WbaCJE6OILlhIidPEFSwkRuviCpYQIXXzB1WX26bR6ky4v3OPriNCFB1YRHa079Pr6eKk/h1IFfA+WdOGBk+QeXtT0Ft3pV6e2fxf2f+AeLOnCA8tC0xv09H1xGi/cgWUi3I8lXXigEzX8u3gmWPP8JI5uYdt/w2thSRceSM0/zVfnb+CtWvB6WNJFOlC6XhDpQOl6QaQDpesFkQ6UrhdEOlC6XpA6gcPB/avumKXnxCadXHkha766tTr1GlE18CRZvEmN7nHfOMGiS5XA4mdmYg64Z5Jg06VKYHlEQoKtOVIz6zx8f0iwNUNyZt2F+3zjBFt9pGe22gWYFLb6lEckJNjGUmWEssR8ga0+0jNL9Z75fD7Rp7UOW32kZxb/1u37vFyUu+sODtjqozGzxaFADfprFM3vuD3Y3gytmf17LJPHXbgTNb5BWhe58yNan1lpWp9ZDVqdWS1am9mOjo7LRq/3B1ESKyYUVquzAAAAAElFTkSuQmCC"
 
 # We only need to call cmus-remote once, then read from cache file as needed
 cmus-remote $server -Q > $cache 2>&1
+
+echo $* >> $log
 
 ###############   Commands   ###################
 play() {
@@ -35,21 +41,31 @@ play() {
 
 pause() {
     cmus-remote $server --pause
-    alert_current
+    alert-current
 }
 
 prev() {
     cmus-remote $server --prev
-    alert_current
+    alert-current
 }
 
 next() {
     cmus-remote $server --next
-    alert_current
+    alert-current
 }
 
 start() {
     if ! attach_cmus; then run_cmus; fi
+}
+
+display() {
+    if ! pgrep sxiv; then
+       sxiv -g 250x250 -b "$cover" &
+    fi
+}
+
+kill-display() {
+    pkill sxiv
 }
 
 attach_cmus() {
@@ -62,9 +78,24 @@ run_cmus() {
 
 quit() {
     screen -X -S cmus quit >/dev/null 2>&1
+    update_i3blocks
+    kill-display
+}
+
+update-cover() {
+    echo "UPDATING COVER WITH: $(file)" >> $log
+    ffmpeg -i "$(file)" "$cover" -y  >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "$blank_icon" | base64 --decode > "$cover"
+    fi
+}
+
+file() {
+    cat "$cache" | grep file | cut -d' ' -f2-
 }
 
 status-line() {
+    update-cover
     if pgrep cmus >/dev/null 2>&1; then
        text=$(echo "$(artist) :: $(song)" | truncate)
        if [ "$(status)" == "paused" ]; then
@@ -105,20 +136,23 @@ repeat() {
 }
 
 ################   Aux   #####################
-update_i3blocks () {
+update-i3blocks () {
   pkill -RTMIN+12 i3blocks
 }
 
-alert_current() {
+alert-current() {
     if pgrep cmus >/dev/null; then
         if [ "$(status)" = "playing" ]; then
-            notify-send -t 10 -u low -a cmus "Currently Playing" "$(status-line-no-icons)"
+            # notify-send -t 10 -u low -a cmus "Currently Playing" "$(status-line-no-icons)" &
+            display
+        else
+            kill-display
         fi
     fi
 }
 
 sanitize() {
-    sed -e 's/\&/&amp;/' | sed -e 's/^\s\+//'
+    sed -e 's/\&/&amp;/g' | sed -e 's/^\s\+//g'
 }
 
 truncate() {
@@ -222,8 +256,16 @@ case "$1" in
         exit 0 # Exit instead of updating i3blocks to avoid infinite loop
         ;;
 
+    status)
+        update-cover
+        ;;
+
+    file)
+        file
+        ;;
+
     info)
-        cmus-remote $server -Q
+        cat $cache
         ;;
 
     dl)
@@ -237,6 +279,10 @@ case "$1" in
         else
             edit
         fi
+        ;;
+
+    display)
+        display
         ;;
 
     "")
@@ -259,4 +305,4 @@ dl url           download a youtube video and add it to your library"
 esac
 
 # Always send the update signal to i3blocks.
-update_i3blocks
+update-i3blocks

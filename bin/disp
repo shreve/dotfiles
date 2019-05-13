@@ -1,29 +1,51 @@
 #!/usr/bin/env bash
 
-INTERNAL_INPUT="eDP1"
+# This script is called from /etc/udev/rules.d/80-monitor-unplug.rules
+#
+# ACTION=="change", SUBSYSTEM=="drm", \
+#   ENV{DISPLAY}=":0", \
+#   ENV{XAUTHORITY}="/home/jacob/.Xauthority", \
+#   RUN+="/home/jacob/bin/disp update"
+#
+# Also, I had issues getting this to work from this file because it runs as root
+# A solution to this is to run `xhost +local:`, which is really insecure and
+# allows X connections from basically anywhere.
 
-# export DISPLAY=:0
-# export XAUTHORITY=/home/jacob/.Xauthority
+INTERNAL_INPUT="eDP1"
 
 log() {
     echo "$@"
     echo "$@" >> /tmp/disp.log
 }
 
-geometry_of() {
-    xrandr | grep "$1" | awk '{print $3}'
+status_of() {
+    if is_enabled "$1"; then
+        echo "Displaying [$(geometry_of "$1")]"
+    elif is_connected "$1"; then
+        echo "Connected, not enabled"
+    else
+        echo "Not connected"
+    fi
 }
 
-status_of() {
-    geometry=$(geometry_of $1)
-    case $geometry in
-        ''[0-9]*) echo "Displaying [$geometry]" ;;
-        *)        echo "Not active" ;;
-    esac
+geometry_of() {
+    if [[ "$1" = "$INTERNAL_INPUT" ]]; then
+        xrandr | grep "$1" | awk '{print $4}'
+    else
+        xrandr | grep "$1" | awk '{print $3}'
+    fi
 }
 
 connected_screens() {
     xrandr -q | grep " connected" | awk '{print $1}'
+}
+
+is_connected() {
+    connected_screens | grep "$1" > /dev/null
+}
+
+is_enabled() {
+    [[ $(geometry_of "$1") = [0-9]* ]] > /dev/null
 }
 
 position_flag() {
@@ -35,8 +57,9 @@ position_flag() {
 
 enable_screen() {
     display=$1
-    mode=$(position_flag $2)
-    if [[ "$(status_of $display)" =~ Displaying* ]]; then
+    mode=$(position_flag "$2")
+
+    if is_enabled "$display"; then
         log "$display is already active."
         exit 1
     elif [[ "$mode" = "" ]]; then
@@ -44,21 +67,18 @@ enable_screen() {
         exit 1
     else
         log "Connecting $display (using $mode)"
-        xrandr --output $INTERNAL_INPUT --auto --output $display --auto $mode $INTERNAL_INPUT
+        xrandr --output "$INTERNAL_INPUT" --auto \
+               --output "$display" --auto \
+               "$mode" "$INTERNAL_INPUT"
     fi
 }
 
 disable_screen() {
     display=$1
-    # if [[ "$(status_of $display)" = "Not active" ]]; then
-    #     echo "$display is already off."
-    #     exit 1
-    # else
-        log "Disconnecting $1"
-        xrandr --output $INTERNAL_INPUT --auto --output $1 --off
-        log "xrandr --output $INTERNAL_INPUT --auto --output $1 --off"
-        log "$?"
-    # fi
+
+    log "Disconnecting $display"
+    xrandr --output $INTERNAL_INPUT --auto --output "$display" --off
+    log "xrandr --output $INTERNAL_INPUT --auto --output $display --off"
 }
 
 copy_workspaces() {
@@ -78,50 +98,59 @@ copy_workspaces() {
 case "$1" in
     toggle)
         display=$2
-        mode=$(position_flag $3)
+        mode=$(position_flag "$3")
+
         if [[ -z "$display" ]] || [[ -z "$mode" ]]; then
             log "Usage: disp toggle [display] [clone,above]"
         else
-            if [[ "$(status_of $display)" == "Not active" ]]; then
-                enable_screen $display $mode
-                copy_workspaces $INTERNAL_INPUT $display
+            if is_enabled "$display" ; then
+                disable_screen "$display"
             else
-                disable_screen $display
+                enable_screen "$display" "$mode"
+                copy_workspaces "$INTERNAL_INPUT" "$display"
             fi
             [[ -a ~/.fehbg ]] && ~/.fehbg
         fi
         ;;
 
     on)
-        enable_screen $2 $3
+        enable_screen "$2" "$3"
         ;;
 
     off)
-        disable_screen $2
+        disable_screen "$2"
         ;;
 
     status | st)
         for screen in $(connected_screens); do
-            echo -ne "$screen \t $(status_of $screen)\n"
+            echo -ne "$screen \t $(status_of "$screen")\n"
         done
         ;;
 
     update)
+        log "Updating"
+        sleep 2
         # Make xrandr match what's real
         # i.e. plug the monitor in, it's active, turn it on in xrandr
         #      unplug the monitor, it's not active, turn it off
         display="HDMI2"
         mode="above"
-        if [[ "$(status_of $display)" == "Not active" ]]; then
-            disable_screen $display
-        else
+
+        log "xrandr"
+        xrandr >> /tmp/disp.log 2>&1
+
+        if is_connected "$display" ; then
+            log "Enabling screen"
             enable_screen $display $mode
             copy_workspaces $INTERNAL_INPUT $display
+        else
+            log "Disabling screen"
+            disable_screen $display
         fi
         ;;
 
     *)
-        echo "Usage: disp [command [arguments]]"
+        echo "Usage: disp command [arguments]"
         echo ""
         echo "  status           view display status"
         echo "  toggle [disp]    turn a display on or off"

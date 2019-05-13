@@ -1,6 +1,0 @@
-[submodule "emacs.d/vendor/jade-mode"]
-	path = emacs.d/vendor/jade-mode
-	url = git@github.com:brianc/jade-mode.git
-[submodule "emacs.d/vendor/grizzl"]
-	path = emacs.d/vendor/grizzl
-	url = git@github.com:grizzl/grizzl.git

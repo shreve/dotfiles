@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-
 start() {
+    tput smcup
     if ! screen -r -D email >/dev/null ; then
         screen -S email /usr/local/bin/mutt 2>&1
     fi

@@ -4,7 +4,7 @@
   set folder         = ~/Mail
   set forward_format = 'Fwd: %s'
   set header_cache   = '~/.mutt/cache/headers'
-  set index_format   = "%2C │ %Z │ %d │ %-30.30F (%-4.4c) %s"
+  set index_format   = "%3C │ %Z │ %d │ %-30.30F (%-4.4c) %s"
   set mbox_type      = Maildir
   set menu_scroll
 
@@ -36,9 +36,10 @@ unset wait_key
 #############################    Bindings      ################################
 bind index gg first-entry
 bind index G last-entry
+bind index r imap-fetch-mail
 
 bind index Q "quit"
-macro index q "<pipe-entry>screen -d email<enter>"
+macro index q "<pipe-entry>screen -d email >/dev/null 2>&1<enter>tput rmcup<enter>"
 
 bind index,pager J sidebar-next
 bind index,pager K sidebar-prev
@@ -46,12 +47,14 @@ bind index,pager ! sidebar-open
 
 bind index,pager B sidebar-toggle-visible
 
-macro index <f2> '<sync-mailbox><enter-command>source ~/.mutt/accounts/umich.edu<enter><change-folder>!<enter>'
-macro index <f3> '<sync-mailbox><enter-command>source ~/.mutt/accounts/wellopp.com<enter><change-folder>!<enter>'
-macro index <f4> '<sync-mailbox><enter-command>source ~/.mutt/accounts/sugu.org<enter><change-folder>!<enter>'
+macro index <f2> '<sync-mailbox><enter-command>source ~/.mutt/accounts/shreve.io<enter><change-folder>!<enter>'
+macro index <f3> '<sync-mailbox><enter-command>source ~/.mutt/accounts/umich.edu<enter><change-folder>!<enter>'
+
+macro index a1 '<sync-mailbox><enter-command>source ~/.mutt/accounts/shreve.io<enter><change-folder>!<enter>'
+macro index a2 '<sync-mailbox><enter-command>source ~/.mutt/accounts/umich.edu<enter><change-folder>!<enter>'
 
 macro index,pager \cb "<pipe-message> urlscan -c <Enter>" "call urlscan to extract URLs out of a message"
 macro attach,compose \cb "<pipe-entry> urlscan<Enter>" "call urlscan to extract URLs out of a message"
 
-source ~/.mutt/accounts/umich.edu
-source ~/.mutt/colors.mutt
+source ~/.mutt/accounts/shreve.io
+source ~/.mutt/themes/solarized.mutt

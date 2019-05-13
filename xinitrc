@@ -25,19 +25,12 @@ xrandr --dpi 100
 # Set wallpaper
 /home/jacob/.fehbg &
 
-# Start Flux
-/home/jacob/bin/flux
-
-# Start Enpass
-/home/jacob/bin/enpass
-
-# Start rescuetime
-/home/jacob/bin/rt &
-
 # Start XSS-lock to lock the screen when it turns off
 /home/jacob/bin/lock watch
 
 # Start dpmswatch to turn the keylights off/on with screen
 /home/jacob/bin/keylight watch-screen
+
+exec dropbox start
 
 i3-msg restart

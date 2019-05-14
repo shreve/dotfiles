@@ -4,20 +4,26 @@ update_i3blocks () {
   pkill -RTMIN+10 i3blocks
 }
 
+current_sink() {
+    sink=$(pactl list sinks short | grep 'RUNNING' | awk '{print $1}')
+    sink=${sink:-0}
+    echo $sink
+}
+
 increase () {
-  pactl set-sink-volume 0 +5%
+  pactl set-sink-volume $(current_sink) +5%
 }
 
 decrease () {
-  pactl set-sink-volume 0 -5%
+  pactl set-sink-volume $(current_sink) -5%
 }
 
 toggle_mute () {
-  pactl set-sink-mute 0 toggle
+  pactl set-sink-mute $(current_sink) toggle
 }
 
 set_volume () {
-    pactl set-sink-volume 0 "${1}%"
+    pactl set-sink-volume $(current_sink) "${1}%"
 }
 
 get_volume() {
@@ -45,6 +51,7 @@ case "$1" in
         ;;
 
     *)
+        current_sink
         get_volume
         ;;
 

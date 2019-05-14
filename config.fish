@@ -15,7 +15,7 @@
 #                         `._,-'  \  `-.-'  /  `-._,'
 #                                  `-.___,-'
 
-set my_paths ~/code/dotfiles/bin ~/code/vendor/bin ./bin
+set my_paths ~/code/dotfiles/bin ~/code/vendor/bin ./bin ~/.local/bin
 
 set EDITOR emacs
 set -x GOPATH ~/code/go
@@ -28,12 +28,29 @@ eval (direnv hook fish)
 
 status --is-interactive; and source (rbenv init -|psub)
 
+function blue
+  pactl load-module module-bluetooth-discover
+  echo "connect 04:FE:A1:DD:22:FD" | bluetoothctl
+end
+
 alias bi "bundle install"
 alias bu "bundle update"
 alias bx "bundle exec"
 
 alias c "clear"
 
+# Keep the screen on
+function caffeine
+  if test "$argv" = "off"
+    xset +dpms
+    xset s 60 60
+  else
+    xset -dpms
+    xset s 0 0
+  end
+end
+
+# Center a blob of text which is less than full-width
 function center-text
   cat $argv > /tmp/center
   set -l screen (tput cols)
@@ -75,6 +92,21 @@ function cppp
   end
 end
 
+# Add the current directory to the list of arguments
+function default-to-here
+    set cmd $argv[1]
+
+    eval "function $cmd
+      if test (count \$argv) -lt 2
+        set argv \$argv ./
+      end
+      for i in \$argv; echo \"\$i\"; end | xargs -d\"\n\" (which $cmd)
+    end"
+end
+
+default-to-here cp
+default-to-here mv
+
 # keep downloading the file until it's 100% done
 # -O maintains the file name from the URL
 function download
@@ -87,9 +119,9 @@ end
 
 function docker-clean
   docker-killall
-  docker rm (docker ps -a -q --no-trunc)
-  docker rmi -f (docker images -a -q --no-trunc)
-  docker volume rm (docker volume ls -qf dangling=true)
+  docker container prune -f
+  docker image prune -f
+  docker volume prune -f
 end
 
 function draw_separator --on-event fish_prompt
@@ -97,15 +129,22 @@ function draw_separator --on-event fish_prompt
   printf "\n%*s" (tput cols) | sed -e 's/ /\—/g'
 end
 
+# Open emacs in the background then detach
 function emacs-bg
   if test $argv[1] = 'which'
-    emacs (which $argv[2]) &
+    spawn emacs (which $argv[2])
   else
-    emacs $argv &
+    spawn emacs $argv
   end
 end
 
 alias e emacs-bg
+
+# Check start time for emacs with and without my config
+function emacs-profile
+    time -f '%e' emacs --eval '(kill-emacs)'
+    time -f '%e' emacs -Q --eval '(kill-emacs)'
+end
 
 alias extract "tar xzfv"
 
@@ -150,7 +189,24 @@ function hist
 end
 
 function hosts
-  sudo emacs /etc/hosts &
+    emacs ~/code/dotfiles/hosts
+end
+
+function update-hosts
+  ls ~/code/dotfiles/hosts/* | grep -v "!" | xargs cat | sudo tee /etc/hosts
+end
+
+function hw2pdf
+  xelatex -halt-on-error "$argv"
+
+  # Run again for labels/refs for projects that use them
+  # xelatex -halt-on-error "$argv"
+
+  find . -name "*aux" -o -name "*log" -o -name "*out" | xargs rm
+
+  inotifywait "$argv" >/dev/null 2>&1
+
+  hw2pdf $argv
 end
 
 function keep-doing
@@ -162,6 +218,7 @@ function keep-doing
 end
 
 alias ls exa
+alias ls-old "exa -al --sort modified --reverse"
 
 function low-power
   if count $argv >/dev/null
@@ -185,7 +242,7 @@ end
 
 # Force kill with a more effective search
 function massacre
-  ps aux | grep -i $argv[1] | awk '{print $2}' | xargs kill -9
+  ps aux | grep -i $argv[1] | awk '{print $2}' | sort -r | xargs kill -9
 end
 
 function mkd
@@ -197,6 +254,8 @@ function o
   nohup xdg-open $argv ^/dev/null >/dev/null &
 end
 
+alias pg "ps aux | grep"
+
 function pgr
   set app ""
   if count $argv
@@ -206,7 +265,7 @@ function pgr
 end
 
 function portsnipe
-  set pid (netstat -tulpn 2>/dev/null | grep $argv | sed -e 's/^.*LISTEN\s\+\([^\/]\+\).*/\1/')
+  set pid (sudo netstat -tulpn 2>/dev/null | grep $argv | sed -e 's/^.*LISTEN\s\+\([^\/]\+\).*/\1/' | head -1)
   set pname (ps $pid | tail -1 | cut -c 28-)
   echo $pid $pname
 end
@@ -214,13 +273,13 @@ end
 function pretty-fortune
   echo
   echo
-  fortune | center-text
+  fortune | cowsay | center-text
   echo
 end
 
 function rusty
   rustc $argv.rs
-  ./$argv
+  eval ./$argv
 end
 
 function reset-i3blocks
@@ -230,13 +289,21 @@ function reset-i3blocks
 end
 
 function save_path --on-event fish_prompt
-  echo $PWD > ~/.cache/pwd
+  echo "$PWD" > ~/.cache/pwd
 end
 
-alias search "find . -type f -name"
+alias search "fd --type file --hidden --no-ignore"
 
 function search_and_destroy
-  search $argv -delete;
+  search $argv --exec sudo rm "{}";
+end
+
+# Collect serial number and other brand information
+function serial
+  set brand (sudo dmidecode -t system | grep Manufacturer | awk -F': ' '{print $2}')
+  set version (sudo dmidecode -t system | grep Version | awk -F': ' '{print $2}')
+  set serial (sudo dmidecode -t system | grep Serial | awk -F': ' '{print $2}')
+  echo "$brand $version (S/N $serial)"
 end
 
 function settings
@@ -248,11 +315,21 @@ function shrug
 end
 
 function size
-  du -hc $argv | tail -1
+  if test "$argv" = ""
+    du -hc -d 1 2>/dev/null | sort -hr | bat
+  else
+    du -h $argv
+  end
 end
 
+# Start and detach a process
 function spawn
-  nohup $argv >/dev/null &
+  silently nohup $argv &
+end
+
+# Capture all output and send it to null
+function silently
+  command $argv >/dev/null 2>&1
 end
 
 # Temporarily change your MAC address, restart to reset
@@ -297,7 +374,7 @@ end
 
 function upgrade
   echo "sudo apt update"
-  sudo apt update 2>&1 > /dev/null
+  sudo apt update >/dev/null 2>&1
 
   echo "sudo apt list --upgradable"
   sudo apt list --upgradable
@@ -313,6 +390,13 @@ function upgrade
 
   echo "sudo apt autoremove"
   sudo apt autoremove
+end
+
+# Remove all metadata from a pdf
+function wipe
+    exiftool -all= -overwrite_original $argv
+    and qpdf --linearize "$argv" "$argv".linearized
+    and mv "$argv".linearized "$argv"
 end
 
 alias ytmp3 "youtube-dl -x --audio-format mp3"
@@ -333,6 +417,5 @@ end
 function fish_user_key_bindings
   # fzf_key_bindings
   bind \cs "__run_with_prefix sudo"
-  bind \cb "__run_with_prefix bx"
   bind \ce "__edit_input"
 end

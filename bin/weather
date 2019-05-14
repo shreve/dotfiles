@@ -74,6 +74,7 @@ icon() {
         "rain"|"sleet")               echo "" ;;
         "snow")                       echo "" ;;
         "partly-cloudy-night")        echo "" ;;
+        "wind")                       echo "~☰";;
         *) status ;;
     esac
 }

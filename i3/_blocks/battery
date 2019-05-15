@@ -17,9 +17,24 @@ colorize () {
   echo "<span foreground=\"$1\">$2</span>"
 }
 
+start_nagbar() {
+    i3-nagbar -m "Low Battery" >/dev/null 2>&1 &
+}
+
+kill_nagbar() {
+    pkill -f "i3-nagbar -m Low Battery" >/dev/null
+}
+
+nagbar_running() {
+    pgrep -f "i3-nagbar -m Low Battery" >/dev/null
+}
+
 alert () {
-    /usr/bin/notify-send --expire-time=3000 --urgency=critical \
-                         "Low Battery" "($charge%) $remaining remaining"
+    nagbar_running || start_nagbar
+}
+
+clear_alert() {
+    nagbar_running && kill_nagbar;
 }
 
 color () {
@@ -68,17 +83,20 @@ power_percent=$(within_range 0 100 $(for_range 6 13 $power))
 charge_color=$(color $charge)
 power_color=$(color $power_percent)
 
+[ "$charge" -gt "7" ] && clear_alert;
+
 if [ "$(prop status)" == "Charging" ]; then
    icon=""
    charge_color='#FFFF00'
    power_color='#FFFF00'
+   clear_alert
 elif [ "$charge" -gt "90" ]; then
   icon=""
 elif [ "$charge" -gt "50" ]; then
   icon=""
 elif [ "$charge" -gt "35" ]; then
   icon=""
-elif [ "$charge" -gt "10" ]; then
+elif [ "$charge" -gt "7" ]; then
   icon=""
 else
   icon=""

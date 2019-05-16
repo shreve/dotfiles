@@ -7,10 +7,10 @@
   st = status -sb
   lg = log --pretty=columned
   last = "log -p -1"
-  p = pull --prune
-  release = checkout release
+  p = "! git pull --prune && git gone"
+  feature = "! git checkout -b $1; git push -u origin $1"
   rm-cached = "! git st | grep ' D' | cut -c 4- | xargs git rm --cached"
-  rm-new = "! git st | grep '??' | cut -c 4- | xargs rm -rf"
+  rm-new = "! git st | grep '??' | awk '{$1=\"\"; print $0}' | while read line; do rm -rf \"$line\"; done"
   stpop = "! git stash apply stash@{$1}; git stash drop stash@{$1}"
   brm = "! git branch -vv | grep gone | awk  '{print $1}' | xargs git branch -D"
   rb = rebase --committer-date-is-author-date
@@ -29,7 +29,7 @@
   editor = vim
   excludesfile = ~/.gitignore
   mergetool = emacs
-  pager = less -r
+	pager = less -r -F -X
 [help]
   # autocorrect = 5 # This actually sucks
 [init]
@@ -48,3 +48,5 @@
   insteadOf = heroku:     # $ git remote add heroku:my-app.git
 [url "git@github.com:"]
   insteadOf = github:     # $ git remote add github:my-repo.git
+[url "git@github.com:shreve/"]
+  insteadOf = gh:

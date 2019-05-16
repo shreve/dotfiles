@@ -2,5 +2,5 @@
 set -e
 PATH="/usr/local/bin:$PATH"
 trap "rm -f .git/TAGS.$$" EXIT
-ctags -e --tag-relative --recurse -f.git/TAGS.$$ --exclude=.git --languages=-javascript,sql
+fd -t f | xargs etags -f.git/TAGS.$$
 mv .git/TAGS.$$ .git/TAGS

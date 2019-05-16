@@ -23,7 +23,7 @@ deb http://prerelease.keybase.io/deb stable main
 deb https://packagecloud.io/slacktechnologies/slack/debian/ jessie main
 
 # R
-deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/
+# deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/
 
 # Signal Messenger
 deb [arch=amd64] https://updates.signal.org/desktop/apt xenial main

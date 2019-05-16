@@ -324,12 +324,13 @@ end
 
 # Start and detach a process
 function spawn
-  silently nohup $argv &
+  fish -c "silently $argv" &
+  disown
 end
 
 # Capture all output and send it to null
 function silently
-  command $argv >/dev/null 2>&1
+  eval $argv >/dev/null 2>&1
 end
 
 # Temporarily change your MAC address, restart to reset
@@ -403,7 +404,7 @@ alias ytmp3 "youtube-dl -x --audio-format mp3"
 
 function __edit_input
   commandline > /tmp/input
-  emacs /tmp/input
+  vim /tmp/input
   commandline (cat /tmp/input)
 end
 
@@ -415,7 +416,6 @@ function __run_with_prefix
 end
 
 function fish_user_key_bindings
-  # fzf_key_bindings
   bind \cs "__run_with_prefix sudo"
   bind \ce "__edit_input"
 end

@@ -5,15 +5,16 @@
   ck = checkout
   ctags = "!.git/hooks/ctags"
   st = status -sb
-  lg = log --pretty=columned
+  lg = "! git log --pretty=columned | less -R --chop-long-lines"
   last = "log -p -1"
-  p = "! git pull --prune && git gone"
+  p = "! git pull --prune --rebase && git gone"
   feature = "! git checkout -b $1; git push -u origin $1"
   rm-cached = "! git st | grep ' D' | cut -c 4- | xargs git rm --cached"
   rm-new = "! git st | grep '??' | awk '{$1=\"\"; print $0}' | while read line; do rm -rf \"$line\"; done"
   stpop = "! git stash apply stash@{$1}; git stash drop stash@{$1}"
   brm = "! git branch -vv | grep gone | awk  '{print $1}' | xargs git branch -D"
   rb = rebase --committer-date-is-author-date
+  root = rev-parse --show-toplevel
 [color]
   diff = always
   status = always
@@ -29,7 +30,7 @@
   editor = vim
   excludesfile = ~/.gitignore
   mergetool = emacs
-	pager = less -r -F -X
+  pager = less -r -F -X
 [help]
   # autocorrect = 5 # This actually sucks
 [init]
@@ -37,16 +38,21 @@
 [merge]
   tool = emacs
 [pretty]
-  columned = format:%C(yellow)%h%Creset  %>(12)%C(green)%ar%Creset  %>(12)%C(cyan)%cr%Creset  %<(18)%C(bold blue)%aN%Creset %C(red)%d%Creset %s
+  columned = format:%C(yellow)%h%Creset  %>(12)%C(green)%ar%Creset  %<(18)%C(bold blue)%aN%Creset %C(red)%d%Creset %s
 [push]
   default = upstream
 [user]
   name = Jacob Evan Shreve
   email = jacob@shreve.io
-  signingkey = 04C36A062FACCFE8
+  signingkey = 1EA0EE6B4000D240
 [url "git@heroku.com:"]
   insteadOf = heroku:     # $ git remote add heroku:my-app.git
 [url "git@github.com:"]
   insteadOf = github:     # $ git remote add github:my-repo.git
 [url "git@github.com:shreve/"]
   insteadOf = gh:
+[filter "lfs"]
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true

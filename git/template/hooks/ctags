@@ -2,5 +2,5 @@
 set -e
 PATH="/usr/local/bin:$PATH"
 trap "rm -f .git/TAGS.$$" EXIT
-fd -t f | xargs etags -f.git/TAGS.$$
-mv .git/TAGS.$$ .git/TAGS
+fd -tf | xargs ctags -f .git/tags.$$
+mv .git/tags.$$ .git/tags

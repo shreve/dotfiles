@@ -1,0 +1,42 @@
+#!/usr/bin/env fish
+
+# Center a blob of text which is less than full-width
+function center-text
+    cat $argv > /tmp/center
+    set -l screen (tput cols)
+    set -l max (cat /tmp/center | awk '{ if (length>L) { L=length } } END { print L }')
+    set -l pad (math "($screen - $max - 1)/2")
+    set -l pad (printf "%"$pad"s" " ")
+    cat /tmp/center | sed "s/^/$pad/"
+end
+
+# Add the current directory to the list of arguments
+function default-to-here
+    set cmd $argv[1]
+
+    eval "function $cmd
+    if test (count \$argv) -lt 2
+    set argv \$argv ./
+end
+for i in \$argv; echo \"\$i\"; end | xargs -d\"\n\" (which $cmd)
+end"
+end
+
+default-to-here cp
+default-to-here mv
+
+function nth
+    awk "{print \$$argv}"
+end
+
+function strip-ext
+    rev | cut -d'.' -f2- | rev
+end
+
+function strip-white
+    sed 's/^ \+//' | sed 's/ \+$//'
+end
+
+function strip-first
+    awk '{$1=""; print $0}' | strip-white
+end

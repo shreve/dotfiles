@@ -1,0 +1,99 @@
+#!/usr/bin/env fish
+
+function pretty-fortune
+    echo
+    function __input
+        if test (random 0 10) -lt 5
+            wotd
+        else
+            fortune
+        end
+    end
+    __input | cowsay -f tux.cow -W (tput cols) -n | center-text
+end
+
+function wotd
+    set -l line (cat ~/Documents/words.txt | sort --random-sort | head -1)
+    set -l word (echo "$line" | cut -d':' -f1)
+    set -l def (echo "$line" | cut -d':' -f2)
+    set -l reset (set_color normal)
+    set -l title (set_color -ou FFF)
+    echo -s $title $word $reset
+    echo $def
+end
+
+function prompt_separator --on-event fish_prompt
+    set_color 333
+    set -l up (uptime -p)
+    set -l line (printf "\n%*s" (math (tput cols) - (string length " $up") - 1) | sed -e 's/ /\—/g')
+    printf "\r$line $up\n"
+end
+
+functions -e fish_prompt
+function fish_prompt
+    set -l last_command_status $status
+    set -l cwd
+
+    if test "$theme_short_path" = 'yes'
+        set cwd (basename (prompt_pwd))
+    else
+        set cwd (prompt_pwd)
+    end
+
+    set -l success_icon     "★"
+    set -l error_icon       "🚫"
+    set -l dirty    "⨯"
+    set -l ahead    "↑"
+    set -l behind   "↓"
+    set -l diverged "⥄ "
+    set -l none     "◦"
+
+    set -l normal_color     (set_color normal)
+    set -l success_color    (set_color $fish_pager_color_progress 2> /dev/null; or set_color cyan)
+    set -l error_color      (set_color $fish_color_error 2> /dev/null; or set_color red --bold)
+    set -l directory_color  (set_color $fish_color_quote 2> /dev/null; or set_color yello)
+    set -l repository_color (set_color $fish_color_cwd 2> /dev/null; or set_color green)
+
+    set -l icon "$success_icon "
+    if test ! $last_command_status -eq 0
+        set -l icon "$error_icon "
+        echo $error_color "exit status" $last_command_status $normal_color
+    end
+
+    set -l git_status ""
+    set -l git_icon ""
+
+    if git_is_repo
+        set git_status " on " $repository_color (git_branch_name) $normal_color " "
+        set git_icon $dirty
+
+        if not git_is_touched
+            set git_icon (git_ahead $ahead $behind $diverged $none)
+        end
+    end
+
+    if test $fish_private_mode
+        echo -n -s "🔒 "
+    end
+
+    set -l location $directory_color $cwd $normal_color
+    echo -n -s $location $git_status $git_icon " ||> "
+end
+
+function fish_right_prompt
+  echo -en "\e[s"
+  set_color $fish_color_autosuggestion 2> /dev/null; or set_color 555
+  date "+  %-I:%M:%S%P"
+  set_color normal
+end
+
+function update_run_time --on-event fish_preexec
+  echo -en "\e[u"
+  fish_right_prompt
+end
+
+function save-path --on-event fish_prompt
+    if ! test $fish_private_mode
+        pwd > ~/.cache/pwd
+    end
+end

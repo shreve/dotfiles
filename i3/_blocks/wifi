@@ -1,8 +1,8 @@
 #!/bin/bash
 
-source ~/bin/_util
+source /home/jacob/bin/_util
 
-case $BLOCK_BUTTON in
+case $button in
     1)
         nm-connection-editor
         ;;
@@ -10,13 +10,19 @@ esac
 
 INTERFACE="${BLOCK_INSTANCE:-wlp4s0}"
 
+refresh() {
+    pkill -RTMIN+13 i3blocks
+}
+
 if [[ "$(cat /sys/class/net/$INTERFACE/operstate)" = 'down' ]]; then
-    echo "$(pango_color 'grey' '  WiFi off')"
+    echo "$(pango_color 'red' '  WiFi off')"
+    sleep 0.5
+    refresh
     exit
 fi
 
 QUALITY=$(grep $INTERFACE /proc/net/wireless | awk '{ print int($3 * 100 / 70) }')
-SSID=$(iwgetid -r | sed 's/&/&amp;/')
+SSID=$(nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2 | sed 's/&/&amp;/')
 #ADDR=$(hostname -I)
 
 color () {
@@ -31,12 +37,12 @@ color () {
     echo "#$(/home/jacob/code/dotfiles/bin/num2hex $red $green 0)"
 }
 
-echo -n "$(pango_color 'lavender' "  $SSID")"
+pango_color 'lavender' " $SSID"
 
-if [[ "$QUALITY" -lt 70 ]]; then
-    echo -n "$(pango_color "$(color "$QUALITY")" " $QUALITY%")"
+if [[ "$QUALITY" -lt 100 ]]; then
+    pango_color "$(color "$QUALITY")" " $QUALITY%"
 fi
 
 if nmcli c | grep vpn | grep wlp4s0 >/dev/null; then
-    echo -n "$(pango_color 'bresnay' ' VPN')"
+    pango_color 'bresnay' ' VPN'
 fi

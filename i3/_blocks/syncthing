@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+url="http://localhost:8384"
+key=$(cat ~/.config/syncthing.key)
+remote_device=ALUBVDV-DUGGIVT-EJUYYJ5-WIBZD7J-4VZT4MR-7MW5CHU-R3V7PLY-A2TBNQ3
+folder=5gxdr-pzrv6
+
+toggle() {
+    if pgrep syncthing >/dev/null; then
+        sudo systemctl stop syncthing
+    else
+        sudo systemctl start syncthing
+    fi
+}
+
+case $button in
+    1)
+        xdg-open "$url" >/dev/null
+        ;;
+
+    2)
+        toggle
+        ;;
+esac
+
+
+read -d '' ruby_size <<EOF
+require "json"
+
+UNITS = %W(B KiB MiB GiB TiB).freeze
+
+def as_size(number)
+number = number.to_f
+  if number.to_i < 1024
+    exponent = 0
+
+  else
+    max_exp  = UNITS.size - 1
+
+    exponent = ( Math.log( number ) / Math.log( 1024 ) ).to_i # convert to base
+    exponent = max_exp if exponent > max_exp # we need this to avoid overflow for the highest unit
+
+    number /= 1024 ** exponent
+  end
+
+  "#{number.round(2)} #{UNITS[ exponent ]}"
+end
+
+puts as_size(JSON.parse(\$stdin.read)["needBytes"])
+EOF
+
+completion() {
+    curl -s -H "X-API-KEY: $key" "$url/rest/db/completion?device=$remote_device&folder=$folder" \
+        | ruby -e "$ruby_size"
+}
+
+source /home/jacob/bin/_util
+icon=""
+
+if pgrep syncthing > /dev/null; then
+    comp=" $(completion)"
+    if [ "$comp" = " 0.0 B" ]; then
+        comp=""
+    fi
+
+    pango_color "computer warrior" "<span weight='bold'>$icon</span>$comp"
+else
+    pango_color "grey" "<span weight='bold'>$icon</span>"
+fi

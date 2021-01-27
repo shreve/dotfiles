@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# total=$(cat /proc/meminfo | grep MemTotal | awk '{print $2}')
+total=8019196
+used=$(cat /proc/meminfo | grep Active: | awk '{print $2}')
+limit=6014397
+if [ $used -gt $limit ]; then
+  pct=$(bc -l <<< "scale=0; ($used * 100) / $total")
+
+  source ~/bin/_util
+  pango_color "red" " $pct%"
+fi

@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
 source ~/bin/_util
-format='(((%j - 1) * 24 * 3600) + (%k * 3600) + (%M * 60) + %S) / 315360'
-pango_color 'lavender' "$(date "+scale=2; $format" | bc | sed 's/$/%/')"
+
+# Common years have a fixed number of total seconds
+year_seconds="31536000"
+
+# Common leap years have a different amount of total seconds
+if test $(echo $(date +%y)" % 4 == 0" | bc) -eq 1; then
+  year_seconds="31622400"
+fi
+
+# Current day * (24 hours per day) * (3600 seconds per hour) +
+# Current hour * (3600 seconds per hour) +
+# Current minute * (60 seconds per minute) +
+# Current second
+format="(((%j - 1) * 86400) + (%k * 3600) + (%M * 60) + %S) / $year_seconds"
+pango_color 'lavender' "$(date "+scale=2; 100 * $format" | bc | sed 's/$/%/')"

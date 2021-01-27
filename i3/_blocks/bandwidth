@@ -18,8 +18,8 @@
 
 [ -e /tmp/low_power_mode ] && exit 0
 
-INLABEL=" "
-OUTLABEL=" "
+INLABEL="↓ "
+OUTLABEL="↑ "
 
 # Use the provided interface, otherwise the device used for the default route.
 if [[ -n $BLOCK_INSTANCE ]]; then

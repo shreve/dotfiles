@@ -2,8 +2,14 @@
 
 [ -e /tmp/low_power_mode ] && exit 0
 
-usage=$(df -B M ${BLOCK_INSTANCE:-$1} | tail -1 | awk '{print $3/1}')
+case $button in
+    1)
+        terminal --command "ncdu" --directory "/home/$(whoami)"
+        ;;
+esac
+
+usage=$(df -B M | grep " /$" | awk '{print $3/1}')
 usage=$(echo "scale=1; $usage/1024" | bc -l)
 
 source ~/bin/_util
-pango_color "pink cocktail" "$usage Gb"
+pango_color "pink cocktail" "<span weight='bold'></span> $usage Gb"

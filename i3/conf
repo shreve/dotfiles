@@ -14,18 +14,20 @@ exec ~/.xinitrc
 set $mod Mod1
 
 set $bin /home/jacob/code/dotfiles/bin
-set $term /home/jacob/code/vendor/bin/alacritty --working-directory="`cat ~/.cache/pwd`"
+set $vbin /home/jacob/code/vendor/bin
+set $gbin /home/jacob/code/go/bin
+set $term terminal --directory "`cat ~/.cache/pwd`"
 
 set $color #6D33E7
 #A582EE
 
 gaps inner 20
 gaps outer 0
-# smart_gaps on
+smart_gaps on
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
-font pango:Ubuntu Mono 14px
+font pango:Fira Code 14px
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
@@ -44,22 +46,24 @@ workspace_layout stacked
 default_orientation vertical
 
 # Open scratchpad
-bindsym $mod+space scratchpad show
+bindsym $mod+space exec $bin/emoji-select
 bindsym $mod+Shift+space move scratchpad
 
 # start a terminal
 bindsym $mod+Return exec $term
+bindsym $mod+Shift+Return exec $term -e "fish --private"
 
 # open a browser window
-# bindsym $mod+b exec google-chrome-stable --force-device-scale-factor=1.25
-# bindsym $mod+Shift+b exec google-chrome-stable --force-device-scale-factor=1.25 -incognito
 bindsym $mod+b exec firefox
 bindsym $mod+Shift+b exec firefox --private-window
 
 # open an editor
-bindsym $mod+e exec emacs --chdir `cat ~/.cache/pwd`
+bindsym $mod+e exec --no-startup-id $term --command "vim"
 
-bindsym $mod+m exec --no-startup-id $bin/music start --i3
+bindsym $mod+m exec --no-startup-id $term --command "$bin/music start --i3"
+
+bindsym $mod+r exec --no-startup-id $term --command "$bin/roku"
+for_window [class="RokuRemote"] floating enable
 
 # kill focused window
 bindsym $mod+q kill
@@ -70,7 +74,7 @@ bindsym $mod+q kill
 # shipping a .desktop file. It is a wrapper around dmenu, so you need that
 # installed.
 bindsym $mod+XF86Search exec --no-startup-id i3-dmenu-desktop \
-  --dmenu="dmenu -i -fn 'Fira Mono-10' -sb '#0080ff' -sf '#FFF' -nb '#000' -nf '#FFF'"
+  --dmenu="dmenu -i -fn 'Fira Code-10' -sb '#0080ff' -sf '#FFF' -nb '#000' -nf '#FFF'"
 
 # Open Gnome system settings
 bindsym $mod+XF86Tools exec unity-control-center --overview
@@ -163,7 +167,7 @@ mode "resize" {
         bindsym Escape mode "default"
 }
 
-bindsym $mod+r mode "resize"
+# bindsym $mod+r mode "resize"
 
 # Pulse Audio controls
 bindsym XF86AudioMute        exec $bin/volume mute
@@ -183,9 +187,9 @@ bindsym XF86LaunchA exec $bin/wallpaper change
 bindsym XF86Explorer exec $term --command="ranger"
 
 # Music controls
-bindcode 110 exec $bin/music prev # Home
-bindcode 115 exec $bin/music pause # End
-bindcode 118 exec $bin/music next # Insert
+bindcode 110 exec $gbin/mw prev # Home
+bindcode 115 exec $gbin/mw play-pause # End
+bindcode 118 exec $gbin/mw next # Insert
 
 bindsym Mod1+Tab workspace next_on_output
 bindsym Mod1+Shift+Tab workspace prev_on_output
@@ -200,7 +204,7 @@ bindsym --release Shift+Print exec scrot -s $screenie_path
 bar {
     # status_command i3status
     status_command i3blocks
-    font pango:FontAwesome, Ubuntu Mono 16px
+    font pango: Fira Code, Font Awesome 5 Free 12
 
     tray_output primary
     tray_padding 3 px
@@ -219,7 +223,7 @@ bar {
 }
 
 new_window pixel
-hide_edge_borders none
+hide_edge_borders smart_no_gaps
 
 #                  Border  Backgrd text    indctr    child_border
 client.focused     $color  $color  #ffffff #2e9ef4   $color
@@ -227,4 +231,7 @@ client.unfocused   $color  #31343E #ffffff #2e9ef4   #ffffff
 
 # old blue: #0080ff
 
-for_window [class="zoom" instance="zoom"] floating enable
+# for_window [class="zoom" instance="zoom"] floating enable
+for_window [class="gimp" title=*"Toolbox"] move right 50
+for_window [class="Sxiv" instance="sxiv"] floating enable sticky enable move right 1152,move down 580
+no_focus [class="Sxiv" instance="sxiv"]

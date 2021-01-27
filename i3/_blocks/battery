@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Respond to buttons first so as to avoid future calculations
-case $BLOCK_BUTTON in
+case $button in
     1)
-        gnome-terminal --command "sudo powertop"
+        terminal --command "sudo powertop"
         ;;
 esac
 
@@ -103,7 +103,7 @@ else
   alert
 fi
 
-charge=$(colorize "$charge_color" "$icon  $charge%")
+charge=$(colorize "$charge_color" "$icon $charge%")
 power=$(colorize $power_color "$power W")
 
-echo "$charge $remaining $power"
+echo -n "$charge $remaining $power"

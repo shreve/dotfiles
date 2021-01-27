@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-case $BLOCK_BUTTON in
+case $button in
     1)
         xscreensaver-command -activate >/dev/null
         ;;
@@ -20,4 +20,4 @@ esac
 
 source ~/bin/_util
 
-pango_color "show me your heart" "$(printf " %.0f%%" "$(xbacklight)")"
+pango_color "orange" "<span weight='bold'></span> $(printf "%.0f%%" "$(xbacklight)")"

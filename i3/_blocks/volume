@@ -34,7 +34,7 @@ MIXER="pulse"
 # The instance option sets the control to report and configure
 # This defaults to the first control of your selected mixer
 # For a list of the available, use `amixer -D $Your_Mixer scontrols`
-SCONTROL="${BLOCK_INSTANCE:-$(amixer -D $MIXER scontrols |
+SCONTROL="${BLOCK_INSTANCE:-$(amixer -D pulse scontrols |
                   sed -n "s/Simple mixer control '\([A-Za-z ]*\)',0/\1/p" |
                   head -n1
                 )}"
@@ -46,12 +46,12 @@ STEP="${1:-5%}"
 #------------------------------------------------------------------------
 
 capability() { # Return "Capture" if the device is a capture device
-  amixer -D $MIXER get $SCONTROL |
+  amixer -D pulse get $SCONTROL |
     sed -n "s/  Capabilities:.*cvolume.*/Capture/p"
 }
 
 mixer_state() {
-  amixer -D $MIXER get $SCONTROL $(capability)
+  amixer -D pulse get $SCONTROL $(capability)
 }
 
 is_muted() {
@@ -65,23 +65,20 @@ volume() {
 
 #------------------------------------------------------------------------
 
-case $BLOCK_BUTTON in
-  3) amixer -q -D $MIXER sset $SCONTROL $(capability) toggle ;;  # right click, mute/unmute
-  4) amixer -q -D $MIXER sset $SCONTROL $(capability) ${STEP}- unmute ;; # scroll up, increase
-  5) amixer -q -D $MIXER sset $SCONTROL $(capability) ${STEP}+ unmute ;; # scroll down, decrease
+case $button in
+  1|3) amixer -q sset $SCONTROL $(capability) toggle ;;  # right click, mute/unmute
+  4) amixer -q sset $SCONTROL $(capability) ${STEP}- unmute ;; # scroll up, increase
+  5) amixer -q sset $SCONTROL $(capability) ${STEP}+ unmute ;; # scroll down, decrease
 esac
+
+vol=$(volume)
 
 if is_muted; then
     color='grey'
-    icon="<span> </span>"
+    icon=""
 else
     color="give your heart"
-    if [ $(volume) -gt 50 ]; then
-        icon=""
-    else
-        icon=""
-    fi
+    icon=""
 fi
 
-
-echo $(pango_color "$color" "$icon $(volume)%")
+pango_color "$color" "$icon $vol%"

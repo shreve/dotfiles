@@ -2,13 +2,21 @@
 
 [ -e /tmp/low_power_mode ] && exit 0
 
-case $BLOCK_BUTTON in
-    1)
-        xdg-open "https://darksky.net" >/dev/null
-        ;;
-    2)
-        /home/jacob/bin/weather force_update
+source /home/jacob/bin/_util
+init-gems
+
+case $button in
+  1)
+    xdg-open "https://darksky.net/forecast/$(geoclue)/us12/en" >/dev/null
+    ;;
+  2)
+    /home/jacob/bin/weather --no-cache
+    ;;
 esac
 
-source /home/jacob/bin/_util
-echo -n "$(pango_color "computer warrior" "$(/home/jacob/bin/weather line)")"
+icon=$(/home/jacob/bin/weather icon)
+line=$(/home/jacob/bin/weather line)
+
+if [ ! "$line" = "" ]; then
+    pango_color "computer warrior" "<span weight='bold'>$icon</span> $line"
+fi

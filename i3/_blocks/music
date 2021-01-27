@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 
-case $BLOCK_BUTTON in
+case $button in
     1)
-        /home/jacob/code/dotfiles/bin/music pause
+        /home/jacob/code/go/bin/mw play-pause
         ;;
 esac
 
-status=$(/home/jacob/code/dotfiles/bin/music status-line)
+leafy="#53D462"
+grey="#666666"
+lightgrey="#424242"
 
-[ "$status" = "" ] && exit 0
+# status=$(/home/jacob/code/dotfiles/bin/music status-line)
+/home/jacob/code/go/bin/mw status -watch \
+  -format '<span foreground="{status}">{icon} {artist} :: {track}</span>' \
+  | sed --unbuffered -e "s/Paused/$grey/" -e "s/Playing/$leafy/" \
+                     -e "s/Stopped/$lightgrey/" -e "s/  :: / /" \
+                     -e "s/&/&amp;/g"
 
-echo $status
+# [ "$status" = "" ] && exit 0
+
+# echo $status

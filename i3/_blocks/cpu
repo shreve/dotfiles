@@ -2,9 +2,9 @@
 
 [ -e /tmp/low_power_mode ] && exit 0
 
-case $BLOCK_BUTTON in
+case $button in
     1)
-        gnome-terminal --command "htop"
+        terminal --command "htop"
         ;;
 esac
 
@@ -37,15 +37,19 @@ awkscript='NR == 1 {
            NR > 1 {
              work=($2+$4)-owork;
              idle=$5-oidle;
-             printf "%.1f%", 100 * work / (work + idle)
+             printf "%.1f", 100 * work / (work + idle)
            }'
 
 # Execute the awk script against the two lines of input and save the string.
 usage=$(echo -e "$previous\n$current" | awk "$awkscript")
+
+if [ "$(echo $usage | cut -f1 -d'.')" -lt 30 ]; then
+  exit 0
+fi
 
 # Save the current value. The next time you run this script will calculate
 # average usage since this line was run.
 save_current
 
 source ~/bin/_util
-pango_color "magenta" "$usage $temp"
+pango_color "magenta" " $usage% $temp"

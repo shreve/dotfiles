@@ -11,6 +11,12 @@ link() {
   else
     echo "Linking $2."
   fi
+
+  if [ ! -d $(dirname $2) ]; then
+    echo "Making directory $(dirname $2)"
+    mkdir -p $(dirname $2)
+  fi
+
   if [[ $1 == /* ]]; then
     ln -s $1 $2
   else

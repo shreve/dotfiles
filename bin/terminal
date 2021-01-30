@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+#
+# This tool provides a unified interface for starting a new terminal. The idea
+# is that I can use `terminal --command` wherever in my scripts and
+# configuration, and if at a later point in time I want to change terminal
+# emulators, I can do so in one place, rather than everywhere.
+#
+
+args=(${TERMINAL:-konsole})
+
+while (( "$#" )); do
+
+    case "$1" in
+
+        # In the command, it's important to run it through fish so that the
+        # process inherits all the environment from my shell. For example, the
+        # $ROKU_HOST variable I have set to make the roku remote start quickly,
+        # or the $PATH variable for running various binaries from vim.
+        --command|--run)
+            shift
+            args+=(-e fish -c "'$@'")
+            shift $#
+            ;;
+
+        -d|--dir|--directory)
+            shift
+            args+=(--workdir "$1")
+            shift
+            ;;
+
+        *)
+            args+=("$1")
+            shift
+            ;;
+    esac
+
+done
+
+# echo "${args[*]}"
+eval "${args[*]}"

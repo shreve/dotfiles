@@ -20,7 +20,7 @@ link() {
   if [[ $1 == /* ]]; then
     ln -s $1 $2
   else
-    sudo ln -s $P/$1 $2
+    ln -s $P/$1 $2
   fi
 }
 
@@ -50,7 +50,7 @@ link psqlrc.sql ~/.psqlrc
 link xinitrc ~/.xinitrc
 link xmodmap ~/.Xmodmap
 
-link konsole ~/.local/share/konsole
+link konsole/ ~/.local/share/konsole
 link konsole/konsolerc ~/.config/konsolerc
 
 # link bin/keylight /etc/pm/sleep.d/10keylight

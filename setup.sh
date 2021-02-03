@@ -20,42 +20,40 @@ link() {
   if [[ $1 == /* ]]; then
     ln -s $1 $2
   else
-    sudo ln -s $P/$1 $2
+    ln -s $P/$1 $2
   fi
 }
 
 link bin ~/bin
 
-mkdir -p ~/.config/dunst
-link dunstrc ~/.config/dunst/dunstrc
+link irbrc.rb   ~/.irbrc
+link gemrc      ~/.gemrc
+link psqlrc.sql ~/.psqlrc
+link sqlite.sql ~/.sqliterc
+link xinitrc    ~/.xinitrc
+link xmodmap    ~/.Xmodmap
 
-link vim ~/.config/nvim
+link vim               ~/.config/nvim
+link config.fish       ~/.config/fish/config.fish
+link dunstrc           ~/.config/dunst/dunstrc
+link ranger.conf       ~/.config/ranger/rc.conf
+link cmus.conf         ~/.config/cmus/rc
+link konsole/konsolerc ~/.config/konsolerc
+link i3/conf           ~/.config/i3/config
+link i3/blocks.conf    ~/.config/i3blocks/config
 
-link config.fish ~/.config/fish/config.fish
-
-link gemrc ~/.gemrc
-
-link git/config ~/.gitconfig
-link git/ignore ~/.gitignore
-link git/message ~/.gitmessage
+link git/config   ~/.gitconfig
+link git/ignore   ~/.gitignore
+link git/message  ~/.gitmessage
 link git/template ~/.gittemplate
 
-link irbrc.rb ~/.irbrc
-
-mkdir -p ~/.config/i3
-mkdir -p ~/.config/i3blocks
-link i3/conf ~/.config/i3/config
-link i3/blocks.conf ~/.config/i3blocks/config
-link i3/status ~/.i3status.conf
-
-link psqlrc.sql ~/.psqlrc
-
-link xinitrc ~/.xinitrc
-link xmodmap ~/.Xmodmap
+link konsole/ ~/.local/share/konsole
 
 # link bin/keylight /etc/pm/sleep.d/10keylight
 
-link /home/jacob/.local/share/Trash/files ~/.trash
+# link services/syncthing.service /etc/systemd/system/syncthing.service
 
-link services/syncthing.service /etc/systemd/system/syncthing.service
-
+if which yay >/dev/null 2>&1; then
+  echo "Installing arch packages."
+  cat arch-packages.txt | xargs yay -Sy --noconfirm --needed
+fi

@@ -1,0 +1,39 @@
+[Desktop Entry]
+DefaultProfile=shreve.profile
+
+[DownloadDialog Settings]
+Height 1440=412
+Width 2560=700
+
+[Favorite Profiles]
+Favorites=shreve.profile
+
+[KonsoleWindow]
+ShowMenuBarByDefault=false
+
+[MainWindow]
+Height 1080=1053
+Height 1200=1095
+Height 1440=1239
+Height 2160=1981
+Height 720=668
+MenuBar=Disabled
+RestorePositionForNextInstance=false
+State=AAAA/wAAAAD9AAAAAAAABN4AAAVHAAAABAAAAAQAAAAIAAAACPwAAAAA
+ToolBarsMovable=Disabled
+Width 1280=623
+Width 1920=1920
+Width 2560=1246
+Width 3840=1886
+eDP1 HDMI2 Height 1440=1413
+eDP1 HDMI2 Height 2160=2089
+eDP1 HDMI2 Width 2560=2560
+eDP1 HDMI2 Width 3840=1886
+eDP1 HDMI2 XPosition=22
+eDP1 HDMI2 YPosition=130
+eDP1 Height 1440=1370
+eDP1 Height 480=453
+eDP1 Width 2560=1246
+eDP1 Width 640=640
+eDP1 XPosition=22
+eDP1 YPosition=22

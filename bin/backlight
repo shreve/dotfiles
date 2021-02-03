@@ -7,29 +7,39 @@ update_i3blocks () {
 }
 
 increase () {
-    xbacklight -inc $step
+    xbacklight -inc $step -time 0
 }
 
 decrease () {
-    xbacklight -dec $step
+    xbacklight -dec $step -time 0
 }
 
 set_intensity () {
-    xbacklight -set "$1"
+    xbacklight -set "$1" -time 0
 }
 
 get_intensity () {
-    printf "%.1f" "$(xbacklight)"
+    printf "%.0f" "$(xbacklight)"
 }
 
 case "$1" in
 
     +|increase)
-        increase
+        if [[ "$(get_intensity)" = "0" ]]; then
+            set_intensity 1
+        elif [[ "$(get_intensity)" = "1" ]]; then
+            set_intensity 10
+        else
+            increase
+        fi
         ;;
 
     -|decrease)
-        decrease
+        if [[ "$(get_intensity)" = "10" ]]; then
+            set_intensity 1
+        else
+            decrease
+        fi
         ;;
 
     [0-9]|[0-9][0-9]|100)
@@ -41,5 +51,8 @@ case "$1" in
         ;;
 
 esac
+
+# Make sure the intensity is rounded to the correct number
+set_intensity $(get_intensity)
 
 update_i3blocks

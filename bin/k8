@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+
+### Usage: k8 operation
+###
+###   OPERATION        DESCRIPTION
+###   ctx              output the current context
+###   ctx list         list all contexts
+###   ctx [context]    set the given context as current
+###   env              view the environment variables on a current pod
+###   env edit         select and edit a secret or configmap
+###   log              tail the logs of a running pod
+###   ns               output the current namespace
+###   ns [namespace]   set the given namespace as current
+###   shell            open bash on a pod
+###   run [command]    run an arbitrary command on a pod (less safe)
+###   proxy            open a proxy link to the master node"
+###
+
+print_usage() {
+  cat $0 | grep '^###' | sed -E 's/^### ?/ /'
+}
+
+editor="$EDITOR"
+[ -z "$editor" ] && which emacs >/dev/null && editor="emacs"
+[ -z "$editor" ] && which vim   >/dev/null && editor="vim"
+[ -z "$editor" ] && which nano  >/dev/null && editor="nano"
+KUBE_EDITOR=${KUBE_EDITOR:-$editor}
+
+
+get_context() {
+    kubectl config current-context
+}
+
+list_contexts() {
+    kubectl config get-contexts
+}
+
+set_context() {
+    kubectl config set current-context "$1"
+}
+
+get_namespace() {
+    ns=$(kubectl config get-contexts | grep '*' | awk '{print $5}')
+    if [ "$ns" = "" ]; then
+        echo "No namespace in current context"
+    else
+        echo $ns
+    fi
+}
+
+set_namespace() {
+    kubectl config set-context "$(kubectl config current-context)" --namespace="$1"
+}
+
+pod_names() {
+    kubectl get pods -o name | sed 's/pods\///' | fzf -1
+}
+
+exec_on_pod() {
+    pod="$1"
+    shift
+    kubectl exec -it "$pod" -- "$@"
+}
+
+case "$1" in
+    "all")
+        kubectl get all
+        ;;
+
+    "ctx")
+        case "$2" in
+            "")
+                get_context
+                ;;
+
+            "list")
+                list_contexts
+                ;;
+
+            *)
+                set_context "$2"
+                ;;
+        esac
+        ;;
+
+    "env")
+        case "$2" in
+            "edit")
+                kubectl edit "$(kubectl get secrets,configmap -o name | fzf)"
+                ;;
+            *)
+                exec_on_pod "$(pod_names)" /usr/bin/env
+                ;;
+        esac
+        ;;
+
+    "edit")
+        object=$(kubectl get all -o name | fzf -1)
+        [ ! -z "$object" ] && kubectl edit "$object"
+        ;;
+
+    "kill")
+        kubectl delete po/"$(pod_names)"
+        ;;
+
+    "log")
+        pod="$(pod_names)"
+        container=""
+        case "$2" in
+          "all"|"")
+            container=--all-containers=true
+            ;;
+          *)
+            container=--container="$2"
+        esac
+
+        echo kubectl logs -f "$pod" "$container"
+        kubectl logs -f "$pod" "$container"
+        ;;
+
+    "ns")
+        if [ "$2" = "" ]; then
+            get_namespace
+        else
+            set_namespace "$2"
+        fi
+        ;;
+
+    "ns-hook")
+        if [ -e .k8ns ]; then
+            $0 ns "$(cat .k8ns)"
+        else
+            $0 ns $(basename $(pwd))
+        fi
+        ;;
+
+    "shell")
+        exec_on_pod "$(pod_names)" /bin/bash
+        ;;
+
+    "run")
+        shift
+        exec_on_pod "$(pod_names)" "$@"
+        ;;
+
+    "proxy")
+        pkill -f kubectl
+        kubectl proxy >/dev/null &
+        xdg-open "http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/"
+        ;;
+
+    "warnings")
+        kubectl get events --sort-by='.metadata.creationTimestamp' | grep "TYPE\|Warning"
+        ;;
+
+    *)
+        print_usage
+        ;;
+esac

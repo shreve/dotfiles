@@ -16,9 +16,9 @@ function default-to-here
 
     eval "function $cmd
     if test (count \$argv) -lt 2
-    set argv \$argv ./
-end
-for i in \$argv; echo \"\$i\"; end | xargs -d\"\n\" (which $cmd)
+        set argv \$argv ./
+    end
+    for i in \$argv; echo \"'\$i'\"; end | xargs (which $cmd)
 end"
 end
 

@@ -24,7 +24,7 @@
   pager = true
 [commit]
   template = ~/.gitmessage
-  gpgsign = true
+  gpgsign = false
 [core]
   quotepath = false
   editor = vim

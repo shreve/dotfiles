@@ -37,6 +37,7 @@ link vim               ~/.config/nvim
 link config.fish       ~/.config/fish/config.fish
 link dunstrc           ~/.config/dunst/dunstrc
 link ranger.conf       ~/.config/ranger/rc.conf
+link cmus.conf         ~/.config/cmus/rc
 link konsole/konsolerc ~/.config/konsolerc
 link i3/conf           ~/.config/i3/config
 link i3/blocks.conf    ~/.config/i3blocks/config

@@ -122,14 +122,10 @@ function hist
     | head -$argv
 end
 
-alias hosts "$EDITOR ~/code/dotfiles/hosts; update-hosts"
+alias hosts "sudo $EDITOR /etc/hosts"
 
 function grep-nonascii
     grep --color='auto' -P -n "[\x80-\xFF]" $argv
-end
-
-function update-hosts
-    ls ~/code/dotfiles/hosts/* | grep -v "!" | xargs cat | sudo tee /etc/hosts > /dev/null
 end
 
 function tex2pdf
@@ -157,26 +153,6 @@ alias lso "ls -al --sort modified --reverse"
 alias lsb "ls -al --sort size --reverse"
 alias lss "ls -al --sort size"
 
-function low-power
-    if count $argv >/dev/null
-        switch $argv
-            case on
-                touch /tmp/low_power_mode
-                backlight 20
-                reset-i3blocks
-            case off
-                rm /tmp/low_power_mode
-                backlight 70
-        end
-    else
-        if test -e /tmp/low_power_mode
-            echo "on"
-        else
-            echo "off"
-        end
-    end
-end
-
 alias make "make -j"
 
 function mkd
@@ -200,14 +176,6 @@ alias search "fd --type file --hidden --no-ignore"
 
 function search_and_destroy
     search $argv --exec sudo rm "{}";
-end
-
-# Collect serial number and other brand information
-function serial
-    set brand (sudo dmidecode -t system | grep Manufacturer | awk -F': ' '{print $2}')
-    set version (sudo dmidecode -t system | grep Version | awk -F': ' '{print $2}')
-    set serial (sudo dmidecode -t system | grep Serial | awk -F': ' '{print $2}')
-    echo "$brand $version (S/N $serial)"
 end
 
 function shrug
@@ -244,7 +212,7 @@ function sudo
 end
 
 function tags
-    fd -tf | etags - &
+    fd -tf | ctags - &
 end
 
 # Remove all metadata from a pdf

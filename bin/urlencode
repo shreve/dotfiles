@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+require 'cgi'
+
+def text
+  if ARGV.any?
+    ARGV.join(' ')
+  else
+    $stdin.read
+  end
+end
+
+if ARGV.include?('-d')
+  ARGV.delete('-d')
+  puts CGI::unescape(text)
+else
+  puts CGI::escape(text)
+end
+

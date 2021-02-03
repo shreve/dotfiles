@@ -24,7 +24,12 @@ end
 
 function prompt_separator --on-event fish_prompt
     set_color 333
-    set -l up (uptime -p)
+    set -l up ""
+    if test (uname) = "Darwin"
+        set up (uptime | awk '{ print "up for " $3 " " $4 " " $5 }' | sed s/,//g )
+    else
+        set up (uptime -p)
+    end
     set -l line (printf "\n%*s" (math (tput cols) - (string length " $up") - 1) | sed -e 's/ /\—/g')
     printf "\r$line $up\n"
 end

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+walldir=~/Pictures/wallpapers
+mainfile=$walldir/unsplash.jpg
+
+case $1 in 
+    get)
+        res=$(xrandr --current | grep primary | cut -d'+' -f1 | rev | cut -d' ' -f1 | rev)
+        # res="2560x1440"
+        url="https://source.unsplash.com/random/$res"
+        echo $url
+        curl -sL $url -o $mainfile
+        feh --no-fehbg --bg-fill $mainfile
+    ;;
+
+    save)
+        name=$2
+        dest=$walldir/$name-unsplash.jpg
+        cp -i $mainfile $dest
+        echo "copied to $dest"
+    ;;
+esac

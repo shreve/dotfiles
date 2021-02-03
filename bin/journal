@@ -13,7 +13,7 @@ filename() {
 }
 
 list() {
-    emacs $journaldir
+    $EDITOR $journaldir
 }
 
 date_header() {
@@ -29,7 +29,7 @@ edit() {
         date_header > "$file"
     fi
 
-    emacs "$file"
+    $EDITOR "$file"
 }
 
 # Examine the argument presented for values that indicate we want to edit the

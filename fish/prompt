@@ -81,14 +81,16 @@ function fish_prompt
 end
 
 function fish_right_prompt
-  echo -en "\e[s"
+  echo -en "\e7"
+  # echo -en "\e[s"
   set_color $fish_color_autosuggestion 2> /dev/null; or set_color 555
-  date "+  %-I:%M:%S%P"
+  date "+  %-I:%M:%S%p"
   set_color normal
 end
 
 function update_run_time --on-event fish_preexec
-  echo -en "\e[u"
+  echo -en "\e8"
+  # echo -en "\e[u"
   fish_right_prompt
 end
 

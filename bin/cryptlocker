@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+#
+# Cryptlocker helps you to keep secrets locked up.
+#
+# It encrypts files for yourself, then allows easy decryption, access, and
+# re-encryption. The idea is that the directory is only unencrypted while
+# cryptlocker is running. You start it, do your task in a separate process,
+# then complete it.
+#
+#   $ cryptlocker directory
+#   Unlocked directory.
+#   Press any key to lock the crypt.
+#
+# You can also pass an additional argument which is a program to run, like vim.
+# The completion of that program will act as the signal to lock the crypt.
+#
+#   $ cryptlocker directory vim
+#
+
+set -e
+
+encrypt() {
+  gpg --encrypt --batch --yes --recipient jacob@shreve.io $1 >/dev/null 2>&1
+}
+
+decrypt() {
+  gpg --decrypt --output ${1/.gpg/} $1 >/dev/null 2>&1
+}
+
+compress() {
+  tar czf $1.tar.gz $1
+}
+
+decompress() {
+  tar xzf $1
+}
+
+lock() {
+  compress $1
+  encrypt $1.tar.gz
+  rm -rf $1
+  rm $1.tar.gz
+}
+
+unlock() {
+  decrypt $1
+  decompress ${1/.gpg/}
+  rm ${1/.gpg}
+}
+
+main() {
+  dir=${1/".tar.gz.gpg"/}
+  tar=$dir.tar.gz
+  enc=$dir.tar.gz.gpg
+
+  if [ ! -e $enc ]; then 
+    mkdir $dir >/dev/null 2>&1
+  else
+    unlock $enc
+  fi
+
+  if [ "$program" = "" ]; then
+    echo "Unlocked $dir."
+    read -p "Press any key to lock the crypt."
+  else
+    $program $dir
+  fi
+
+  lock $dir
+}
+
+locker=$1
+program=$2
+
+main $locker

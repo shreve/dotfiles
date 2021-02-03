@@ -24,7 +24,6 @@
   pager = true
 [commit]
   template = ~/.gitmessage
-  gpgsign = false
 [core]
   quotepath = false
   editor = vim
@@ -43,8 +42,6 @@
   default = upstream
 [user]
   name = Jacob Evan Shreve
-  email = jacob@shreve.io
-  signingkey = 1EA0EE6B4000D240
 [url "git@heroku.com:"]
   insteadOf = heroku:     # $ git remote add heroku:my-app.git
 [url "git@github.com:"]

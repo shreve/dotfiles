@@ -1,0 +1,7 @@
+[user]
+  name = Jacob Evan Shreve
+  email =
+  siginingkey =
+
+[commit]
+  gpgpsign = false

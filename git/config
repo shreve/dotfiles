@@ -1,3 +1,5 @@
+[include]
+  path = ~/.gituser
 [alias]
   aa = add --all
   b = branch
@@ -40,8 +42,6 @@
   columned = format:%C(yellow)%h%Creset  %>(12)%C(green)%ar%Creset  %<(18)%C(bold blue)%aN%Creset %C(red)%d%Creset %s
 [push]
   default = upstream
-[user]
-  name = Jacob Evan Shreve
 [url "git@heroku.com:"]
   insteadOf = heroku:     # $ git remote add heroku:my-app.git
 [url "git@github.com:"]

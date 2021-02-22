@@ -47,6 +47,11 @@ link git/ignore   ~/.gitignore
 link git/message  ~/.gitmessage
 link git/template ~/.gittemplate
 
+# We don't want this in the repo. We just keep the template
+if [[ ! -a ~/.gituser ]]; then
+  cp git/user ~/.gituser
+fi
+
 link konsole/ ~/.local/share/konsole
 
 # link bin/keylight /etc/pm/sleep.d/10keylight

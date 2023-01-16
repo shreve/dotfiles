@@ -1,0 +1,5 @@
+alias copy "pbcopy"
+alias update "brew update"
+alias upgrade "brew upgrade"
+alias open "/usr/bin/open"
+alias alert "terminal-notifier -message"

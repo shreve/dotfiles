@@ -1,29 +1,21 @@
-#!/usr/bin/env fish
-
-# Start and detach a process
-function spawn
+function spawn --description 'Start and detach a process'
     $argv &
     disown
 end
 
-# Kill and replace a process
-function respawn
+function respawn --description 'Kill and replace a process'
     massacre $argv
     spawn $argv
 end
 
-# Capture all output and send it to null
-function silently
+function silently --description 'Capture all output and send it to null'
     eval $argv >/dev/null 2>&1
 end
 
-# Force kill with a more effective search
-function massacre
+function massacre --description 'Force kill with a more effective search'
     ps aux | grep -i $argv[1] | grep -v grep | awk '{print $2}' | sort -r | xargs kill -9
 end
 
-
-alias pg "ps aux | grep"
 
 function psearch
     set -l query "COMMAND\|$argv"

@@ -18,7 +18,7 @@ function cleanse
 end
 
 function upgradable-report
-    set -l count (cat ~/.cache/upgradable-packages)
+    set -l count (echo -n 0 && cat ~/.cache/upgradable-packages)
     if test "$count" -gt 0
         echo -es "\n" (set_color yellow) $count " packages upgradable" (set_color normal)
     else
